@@ -1,5 +1,3 @@
-const crypto = require('crypto');
-
 const db = require('../db');
 
 async function mu0() {
@@ -18,35 +16,20 @@ async function md0() {
   return db.query(sql);
 }
 
-async function toHash(salt, password) {
-  return new Promise(function(resolve, reject) {
-    crypto.pbkdf2(password, salt, 100000, 64, 'sha512', (err, derivedKey) => {
-      if (err) reject(err);
-      resolve(derivedKey);
-    });
-  });
-}
 
-async function create(username, password) {
-  const salt = await crypto.randomBytes(16);
-  const hash = await toHash(salt, password);
+
+async function create(username, salt, hash) {
   const sql = 'insert into users(username, salt, hash) values ($1, $2, $3)';
   await db.query(sql, [username, salt, hash]);
 }
 
-// Return true if the supplied username and password is valid
-async function verify(username, password) {
+// Return the salt and hash of the given username
+async function retrieve(username) {
   const sql =
         'select salt, hash from users where username = $1 ' +
         'and deleted = false';
   const result = await db.query(sql, [username]);
-  if (result.rowCount == 0) {
-    return false;
-  } else {
-    const { salt, hash } = result.rows[0];
-    const candidateHash = await toHash(salt, password);
-    return candidateHash.equals(hash);
-  }
+  return result.rowCount == 0 ? null : result.rows[0];
 }
 
 // List all usernames
@@ -56,7 +39,6 @@ async function list() {
   return result.rows.map(row => row.username);
 }
 
-// Delete a user
 async function remove(username) {
   const sql = 'update users set deleted = true where username = $1';
   await db.query(sql, [username]);
@@ -66,7 +48,7 @@ module.exports = {
   migrateUp: [mu0],
   migrateDown: [md0],
   create,
-  verify,
+  retrieve,
   list,
   remove,
 };
