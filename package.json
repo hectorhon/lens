@@ -16,6 +16,10 @@
     "morgan": "~1.9.1",
     "node-sass-middleware": "0.11.0",
     "pg": "^7.12.0",
-    "popper.js": "^1.15.0"
+    "popper.js": "^1.15.0",
+    "uuid": "3.3.2"
+  },
+  "dependenciesComments": {
+    "uuid": "3.3.2 used by node-sass-middleware 0.11.0 from express generator anyway"
   }
 }

@@ -23,10 +23,10 @@ async function create(username, salt, hash) {
   await db.query(sql, [username, salt, hash]);
 }
 
-// Return the salt and hash of the given username
+// Return the (user) id, salt and hash of the given username
 async function retrieve(username) {
   const sql =
-        'select salt, hash from users where username = $1 ' +
+        'select id, salt, hash from users where username = $1 ' +
         'and deleted = false';
   const result = await db.query(sql, [username]);
   return result.rowCount == 0 ? null : result.rows[0];
