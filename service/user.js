@@ -46,7 +46,9 @@ async function removeUser(username) {
 async function loginUser(username, password) {
   const userId = await verifyUser(username, password);
   if (userId) {
-    const sessionId = await sessionsRepo.create(userId);
+    const sessionId = await sessionsRepo.create(userId, {
+      csrfToken: uuid.v4()
+    });
     return sessionId;
   } else {
     return null;

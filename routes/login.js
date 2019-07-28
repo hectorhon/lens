@@ -26,7 +26,9 @@ router.post('/login', route(async (req, res) => {
   const password = req.body.password;
   const sessionId = await userService.loginUser(username, password);
   if (sessionId) {
-    res.cookie(SESSIONCOOKIENAME, sessionId);
+    res.cookie(SESSIONCOOKIENAME, sessionId, {
+      httpOnly: true
+    });
     res.redirect('/');
   } else {
     res.redirect('/login');

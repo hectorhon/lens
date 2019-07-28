@@ -18,13 +18,12 @@ async function md0() {
 
 
 
-async function create(userId) {
+async function create(userId, initialSessionData = {}) {
   const sessionId = uuid.v4();
-  const jsonData = {}; // start with empty session
   const sql =
         'insert into sessions (id, userId, jsonData) ' +
         'values ($1, $2, $3)';
-  await db.query(sql, [sessionId, userId, jsonData]);
+  await db.query(sql, [sessionId, userId, initialSessionData]);
   return sessionId;
 }
 

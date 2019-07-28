@@ -67,6 +67,29 @@ app.use(sassMiddleware({
 // Static files
 app.use('/static', express.static(path.join(__dirname, 'public')));
 
+// CSRF token
+const csrfMiddleware = express.Router();
+csrfMiddleware.all('*', function(req, res, next) {
+  if (req.method == 'GET') {
+    // Expect no state changing operations via GET
+    next();
+  } else {
+    if (req.is('application/json') ||
+        req.is('application/x-www-form-urlencoded')) {
+      const csrfToken = req.body.csrfToken;
+      if (csrfToken === res.locals.session.data.csrfToken) {
+        next();
+      } else {
+        res.status(403).send('Invalid CSRF token');
+      }
+    } else {
+      res.status(400).send(
+        'Unexpected content type when validating CSRF token');
+    }
+  }
+});
+app.use('/', csrfMiddleware);
+
 // Remove loaded flash message from session
 const clearFlashMessageMiddleware = express.Router();
 clearFlashMessageMiddleware.all('*', function(req, res, next) {
