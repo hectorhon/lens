@@ -6,7 +6,7 @@ async function mu0() {
   const sql =
         'create table sessions(' +
         'id uuid primary key,' +
-        'userId integer references users not null,' +
+        'userId integer references users, ' +
         'jsonData text not null)';
   await db.query(sql);
 }
@@ -18,7 +18,9 @@ async function md0() {
 
 
 
-async function create(userId, initialSessionData = {}) {
+// Create a pre-session, not associated with any user. Returns the sessionId.
+async function create(initialSessionData = {}) {
+  const userId = null;
   const sessionId = uuid.v4();
   const sql =
         'insert into sessions (id, userId, jsonData) ' +
@@ -31,7 +33,7 @@ async function retrieve(sessionId) {
   const sql =
         'select s.jsonData, u.username ' +
         'from sessions as s ' +
-        'inner join users as u ' +
+        'left outer join users as u ' +
         'on s.userId = u.id ' +
         'where s.id = $1';
   const result = await db.query(sql, [sessionId]);
@@ -45,10 +47,19 @@ async function retrieve(sessionId) {
   }
 }
 
+// Associate the (pre-)session with a user. Returns true if successful
+async function associateUser(sessionId, userId) {
+  const sql =
+        'update sessions as s set userId = $1 ' +
+        'where s.id = $2 and userId is null';
+  const result = await db.query(sql, [userId, sessionId]);
+  return result.rowCount === 1;
+}
+
 function identity(x) { return x; }
 
 // updater takes the old sessionData and returns the new sessionData
-async function update(sessionId, updater = identity) {
+async function updateData(sessionId, updater = identity) {
   const client = await db.getClient();
   try {
     await client.query('begin');
@@ -60,7 +71,7 @@ async function update(sessionId, updater = identity) {
           'where s.id = $1';
     const retrieveResult = await client.query(retrieveSql, [sessionId]);
     if (retrieveResult.rowCount == 0) {
-      throw `Failed to find session ${sessionId} for update`;
+      throw `Failed to find session ${sessionId} to update session data`;
     }
     const session = {
       username: retrieveResult.rows[0].username,
@@ -93,6 +104,7 @@ module.exports = {
   migrateDown: [md0],
   create,
   retrieve,
-  update,
+  associateUser,
+  updateData,
   remove,
 };

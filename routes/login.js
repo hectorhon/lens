@@ -13,7 +13,7 @@ function route(handler) {
 }
 
 router.get('/login', route(async (req, res) => {
-  if (res.locals.session) { // already logged in
+  if (res.locals.session.username) { // already logged in
     res.redirect('/');
   } else {
     res.locals.layout = false;
@@ -22,10 +22,11 @@ router.get('/login', route(async (req, res) => {
 }));
 
 router.post('/login', route(async (req, res) => {
+  const sessionId = res.locals.session.id;
   const username = req.body.username;
   const password = req.body.password;
-  const sessionId = await userService.loginUser(username, password);
-  if (sessionId) {
+  const loginSuccess = await userService.loginUser(sessionId, username, password);
+  if (loginSuccess) {
     res.cookie(SESSIONCOOKIENAME, sessionId, {
       httpOnly: true
     });

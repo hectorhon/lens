@@ -42,16 +42,28 @@ async function removeUser(username) {
   await usersRepo.remove(username);
 }
 
-// Attempt to log in the user. If successful, return a sessionId.
-async function loginUser(username, password) {
+// Create a session that does not have associated userId
+// Returns the session object (same as getSession)
+async function createPreSession() {
+  const initialSessionData = {
+    csrfToken: uuid.v4()
+  };
+  const sessionId = await sessionsRepo.create(initialSessionData);
+  return {
+    id: sessionId,
+    username: null,
+    data: initialSessionData
+  };
+}
+
+// Attempt to log in the user. Returns true if successful
+async function loginUser(sessionId, username, password) {
   const userId = await verifyUser(username, password);
   if (userId) {
-    const sessionId = await sessionsRepo.create(userId, {
-      csrfToken: uuid.v4()
-    });
-    return sessionId;
+    const success = await sessionsRepo.associateUser(sessionId, userId);
+    return success;
   } else {
-    return null;
+    return false;
   }
 }
 
@@ -74,7 +86,7 @@ async function logoutUser(username) {
 }
 
 async function addFlashMessage(sessionId, message) {
-  await sessionsRepo.update(sessionId, sessionData => {
+  await sessionsRepo.updateData(sessionId, sessionData => {
     if (!sessionData.flashMessages) {
       sessionData.flashMessages = {};
     }
@@ -85,7 +97,7 @@ async function addFlashMessage(sessionId, message) {
 }
 
 async function removeFlashMessage(sessionId, flashMessageId) {
-  await sessionsRepo.update(sessionId, sessionData => {
+  await sessionsRepo.updateData(sessionId, sessionData => {
     if (!sessionData.flashMessages) {
       sessionData.flashMessages = {};
     }
@@ -95,7 +107,7 @@ async function removeFlashMessage(sessionId, flashMessageId) {
 }
 
 async function removeAllFlashMessages(sessionId) {
-  await sessionsRepo.update(sessionId, sessionData => {
+  await sessionsRepo.updateData(sessionId, sessionData => {
     sessionData.flashMessages = {};
     return sessionData;
   });
@@ -106,6 +118,7 @@ module.exports = {
   listUsers,
   verifyUser,
   removeUser,
+  createPreSession,
   loginUser,
   getSession,
   logoutUser,

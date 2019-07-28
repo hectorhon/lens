@@ -1,1 +1,13 @@
 <h1>You have been logged out</h1>
+<p>Click <a href="/">here</a> to go to the login page.</p>
+<p>Automatically redirecting in <span id="timer">3</span> seconds...</p>
+
+<script>
+ setInterval(function() {
+   var currentValue = document.getElementById('timer').textContent;
+   document.getElementById('timer').textContent = currentValue - 1;
+ }, 1000);
+ setTimeout(function() {
+   window.location.href = '/';
+ }, 3000);
+</script>

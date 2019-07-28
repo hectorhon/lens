@@ -14,9 +14,9 @@ module.exports = {
     const start = Date.now();
     const result = await pool.query(text, params);
     const duration = Date.now() - start;
-    console.log('Executed query', {
-      text, duration, rows: result.rowCount
-    });
+    // console.log('Executed query', {
+    //   text, duration, rows: result.rowCount
+    // });
     return result;
   },
 
@@ -30,9 +30,9 @@ module.exports = {
       const start = Date.now();
       const result = await query.apply(client, arguments);
       const duration = Date.now() - start;
-      console.log('Executed query', {
-        text, duration, rows: result.rowCount
-      });
+      // console.log('Executed query', {
+      //   text, duration, rows: result.rowCount
+      // });
       return result;
     };
 

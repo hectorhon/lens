@@ -6,6 +6,7 @@
     </head>
     <body>
         <form action="/logout" method="post">
+            <input type="hidden" name="csrfToken" value="{{ session.data.csrfToken }}" />
             <button>Logout</button>
         </form>
         {{#if session.data.flashMessages}}

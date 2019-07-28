@@ -28,7 +28,10 @@
          }
        }
      }
-     request.send(JSON.stringify({ username }));
+     request.send(JSON.stringify({
+       csrfToken: '{{ session.data.csrfToken }}',
+       username
+     }));
    }
  }
 </script>

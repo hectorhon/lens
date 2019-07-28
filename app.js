@@ -22,50 +22,31 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Load user session to res.locals.session, if present
+// Otherwise generate a pre-session for the anonymous user
 const sessionMiddleware = express.Router();
 sessionMiddleware.all('*', function(req, res, next) {
   const sessionId = req.cookies[loginRouter.SESSIONCOOKIENAME];
   if (sessionId) {
     userService.getSession(sessionId).then(session => {
-      if (session != null) {
-        res.locals.session = session;
+      if (session == null) {
+        res.clearCookie(loginRouter.SESSIONCOOKIENAME);
+        res.status(403).send('Invalid session id');
+        return;
       }
+      res.locals.session = session;
       next();
     });
   } else {
-    next();
+    userService.createPreSession().then(session => {
+      res.locals.session = session;
+      res.cookie(loginRouter.SESSIONCOOKIENAME, session.id, {
+        httpOnly: true
+      });
+      next();
+    });
   }
 });
 app.use('/', sessionMiddleware);
-
-app.use('/', loginRouter);
-
-// Require authentication
-const authenticationMiddleware = express.Router();
-authenticationMiddleware.all('*', function(req, res, next) {
-  if (res.locals.session) {
-    next();
-  } else {
-    if (req.path.indexOf('/static/') == 0) {
-      // static files, return 403 instead of login page
-      res.status(403).end();
-    } else {
-      res.redirect('/login');
-    }
-  }
-});
-app.use('/', authenticationMiddleware);
-
-// Stylesheets
-app.use(sassMiddleware({
-  src: path.join(__dirname, 'public'),
-  dest: path.join(__dirname, 'public'),
-  indentedSyntax: false, // true = .sass and false = .scss
-  sourceMap: true
-}));
-
-// Static files
-app.use('/static', express.static(path.join(__dirname, 'public')));
 
 // CSRF token
 const csrfMiddleware = express.Router();
@@ -89,6 +70,35 @@ csrfMiddleware.all('*', function(req, res, next) {
   }
 });
 app.use('/', csrfMiddleware);
+
+app.use('/', loginRouter);
+
+// Require authentication
+const authenticationMiddleware = express.Router();
+authenticationMiddleware.all('*', function(req, res, next) {
+  if (res.locals.session.username) {
+    next();
+  } else {
+    if (req.path.indexOf('/static/') == 0) {
+      // static files, return 403 instead of login page
+      res.status(403).end();
+    } else {
+      res.redirect('/login');
+    }
+  }
+});
+app.use('/', authenticationMiddleware);
+
+// Stylesheets
+app.use(sassMiddleware({
+  src: path.join(__dirname, 'public'),
+  dest: path.join(__dirname, 'public'),
+  indentedSyntax: false, // true = .sass and false = .scss
+  sourceMap: true
+}));
+
+// Static files
+app.use('/static', express.static(path.join(__dirname, 'public')));
 
 // Remove loaded flash message from session
 const clearFlashMessageMiddleware = express.Router();
