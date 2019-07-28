@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const uuid = require('uuid');
 
 const usersRepo = require('../db/users');
 const sessionsRepo = require('../db/sessions');
@@ -58,12 +59,44 @@ async function getSession(sessionId) {
     return null;
   } else {
     const { username, sessionData } = session;
-    return { username, sessionData };
+    return {
+      id: sessionId,
+      username: username,
+      data: sessionData
+    };
   }
 }
 
 async function logoutUser(username) {
   await sessionsRepo.remove(username);
+}
+
+async function addFlashMessage(sessionId, message) {
+  await sessionsRepo.update(sessionId, sessionData => {
+    if (!sessionData.flashMessages) {
+      sessionData.flashMessages = {};
+    }
+    const flashMessageId = uuid.v4();
+    sessionData.flashMessages[flashMessageId] = message;
+    return sessionData;
+  });
+}
+
+async function removeFlashMessage(sessionId, flashMessageId) {
+  await sessionsRepo.update(sessionId, sessionData => {
+    if (!sessionData.flashMessages) {
+      sessionData.flashMessages = {};
+    }
+    delete sessionData.flashMessages[flashMessageId];
+    return sessionData;
+  });
+}
+
+async function removeAllFlashMessages(sessionId) {
+  await sessionsRepo.update(sessionId, sessionData => {
+    sessionData.flashMessages = {};
+    return sessionData;
+  });
 }
 
 module.exports = {
@@ -74,4 +107,6 @@ module.exports = {
   loginUser,
   getSession,
   logoutUser,
+  addFlashMessage,
+  removeAllFlashMessages,
 };

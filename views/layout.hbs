@@ -8,6 +8,13 @@
         <form action="/logout" method="post">
             <button>Logout</button>
         </form>
+        {{#if session.data.flashMessages}}
+            <div>
+                {{#each session.data.flashMessages}}
+                    <p>{{this}}</p>
+                {{/each}}
+            </div>
+        {{/if}}
         {{{body}}}
     </body>
 </html>

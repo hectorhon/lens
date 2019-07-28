@@ -24,7 +24,9 @@ router.post('/users/create', route(async (req, res) => {
   const password = req.body.password;
   const passwordRepeat = req.body['password-repeat'];
   if (password !== passwordRepeat) {
-    // TODO show flash message
+    await userService.addFlashMessage(
+      res.locals.session.id,
+      'Passwords do not match.');
     res.redirect('/users');
     return;
   }

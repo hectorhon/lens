@@ -46,7 +46,7 @@ authenticationMiddleware.all('*', function(req, res, next) {
   if (res.locals.session) {
     next();
   } else {
-    if (req.path.indexOf('/static') == 0) {
+    if (req.path.indexOf('/static/') == 0) {
       // static files, return 403 instead of login page
       res.status(403).end();
     } else {
@@ -66,6 +66,22 @@ app.use(sassMiddleware({
 
 // Static files
 app.use('/static', express.static(path.join(__dirname, 'public')));
+
+// Remove loaded flash message from session
+const clearFlashMessageMiddleware = express.Router();
+clearFlashMessageMiddleware.all('*', function(req, res, next) {
+  if (req.path.indexOf('/api/') == 0) {
+    // Don't remove flash messages for API calls
+    next();
+  } else if (req.method == 'GET') {
+    // Only remove flash messages for non-API GET calls
+    userService.removeAllFlashMessages(res.locals.session.id)
+      .then(() => next());
+  } else {
+    next();
+  }
+});
+app.use('/', clearFlashMessageMiddleware);
 
 // Application routes
 app.use('/', indexRouter);

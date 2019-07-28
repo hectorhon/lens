@@ -25,8 +25,15 @@ module.exports = {
 
     const query = client.query;
     client.query = async function() {
-      client.lastQuery = arguments[0];
-      return query.apply(client, arguments);
+      const text = arguments[0];
+      client.lastQuery = text;
+      const start = Date.now();
+      const result = await query.apply(client, arguments);
+      const duration = Date.now() - start;
+      console.log('Executed query', {
+        text, duration, rows: result.rowCount
+      });
+      return result;
     };
 
     const timeout = setTimeout(() => {
