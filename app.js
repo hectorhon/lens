@@ -112,8 +112,12 @@ clearFlashMessageMiddleware.all('*', function(req, res, next) {
     next();
   } else if (req.method == 'GET') {
     // Only remove flash messages for non-API GET calls
-    userService.removeAllFlashMessages(res.locals.session.id)
-      .then(() => next());
+    if (res.locals.session.data.flashMessages) {
+      userService.removeAllFlashMessages(res.locals.session.id)
+        .then(() => next());
+    } else {
+      next();
+    }
   } else {
     next();
   }

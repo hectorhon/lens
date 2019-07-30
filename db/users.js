@@ -1,9 +1,10 @@
+const uuid = require('uuid');
 const db = require('../db');
 
 async function mu0() {
   const sql =
         'create table users(' +
-        'id serial primary key,' +
+        'id uuid primary key,' +
         'username varchar(60) unique not null,' +
         'salt bytea not null,' +
         'hash bytea not null,' +
@@ -19,8 +20,11 @@ async function md0() {
 
 
 async function create(username, salt, hash) {
-  const sql = 'insert into users(username, salt, hash) values ($1, $2, $3)';
-  await db.query(sql, [username, salt, hash]);
+  const userId = uuid.v4();
+  const sql =
+        'insert into users(id, username, salt, hash) ' +
+        'values ($1, $2, $3, $4)';
+  await db.query(sql, [userId, username, salt, hash]);
 }
 
 // Return the (user) id, salt and hash of the given username

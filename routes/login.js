@@ -25,15 +25,8 @@ router.post('/login', route(async (req, res) => {
   const sessionId = res.locals.session.id;
   const username = req.body.username;
   const password = req.body.password;
-  const loginSuccess = await userService.loginUser(sessionId, username, password);
-  if (loginSuccess) {
-    res.cookie(SESSIONCOOKIENAME, sessionId, {
-      httpOnly: true
-    });
-    res.redirect('/');
-  } else {
-    res.redirect('/login');
-  }
+  await userService.loginUser(sessionId, username, password);
+  res.redirect('/');
 }));
 
 router.post('/logout', route(async (req, res) => {

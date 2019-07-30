@@ -6,7 +6,7 @@ async function mu0() {
   const sql =
         'create table sessions(' +
         'id uuid primary key,' +
-        'userId integer references users, ' +
+        'userId uuid references users, ' +
         'jsonData text not null)';
   await db.query(sql);
 }
@@ -66,12 +66,12 @@ async function updateData(sessionId, updater = identity) {
     const retrieveSql =
           'select s.jsonData, u.username ' +
           'from sessions as s ' +
-          'inner join users as u ' +
+          'left outer join users as u ' +
           'on s.userId = u.id ' +
           'where s.id = $1';
     const retrieveResult = await client.query(retrieveSql, [sessionId]);
     if (retrieveResult.rowCount == 0) {
-      throw `Failed to find session ${sessionId} to update session data`;
+      throw new Error(`Failed to find session ${sessionId} to update session data`);
     }
     const session = {
       username: retrieveResult.rows[0].username,
