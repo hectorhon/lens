@@ -63,3 +63,6 @@ typings/
 # generated css files and maps
 public/stylesheets/*.css
 public/stylesheets/*.css.map
+
+# data directory
+data/

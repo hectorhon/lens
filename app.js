@@ -5,10 +5,12 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var sassMiddleware = require('node-sass-middleware');
 
+const userService = require('./service/user');
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var loginRouter = require('./routes/login');
-const userService = require('./service/user');
+var imagesRouter = require('./routes/images');
 
 var app = express();
 
@@ -57,15 +59,17 @@ csrfMiddleware.all('*', function(req, res, next) {
   } else {
     if (req.is('application/json') ||
         req.is('application/x-www-form-urlencoded')) {
-      const csrfToken = req.body.csrfToken;
-      if (csrfToken === res.locals.session.data.csrfToken) {
+      if (req.body &&
+          req.body.csrfToken === res.locals.session.data.csrfToken) {
         next();
       } else {
         res.status(403).send('Invalid CSRF token');
       }
+    } else if (req.is('multipart/form-data')) {
+      // defer CSRF check to the actual route
+      next();
     } else {
-      res.status(400).send(
-        'Unexpected content type when validating CSRF token');
+      res.status(400).send('Missing CSRF token');
     }
   }
 });
@@ -119,6 +123,7 @@ app.use('/', clearFlashMessageMiddleware);
 // Application routes
 app.use('/', indexRouter);
 app.use('/', usersRouter);
+app.use('/', imagesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
