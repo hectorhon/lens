@@ -1,6 +1,8 @@
+const fs = require('fs');
 const express = require('express');
 const multer = require('multer');
-const fs = require('fs');
+const uuid = require('uuid');
+const imagesRepo = require('../db/images');
 
 const router = express.Router();
 
@@ -8,7 +10,16 @@ const UPLOAD_DIR = 'data/uploads/';
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
-const upload = multer({ dest: UPLOAD_DIR });
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, UPLOAD_DIR);
+    },
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + '-' + uuid.v4());
+    }
+  })
+});
 
 // CSRF check after reading the multipart request body
 const csrfCheck = function(req, res, next) {
@@ -33,6 +44,11 @@ router.get('/images/upload', route(async (req, res) => {
 }));
 
 router.post ('/images/upload', upload.single('file'), csrfCheck, route(async (req, res) => {
+  await imagesRepo.record(
+    req.file.path,
+    req.file.size,
+    req.file.originalname,
+    res.locals.session.userId);
   res.redirect('/images');
 }));
 
