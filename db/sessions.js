@@ -31,7 +31,7 @@ async function create(initialSessionData = {}) {
 
 async function retrieve(sessionId) {
   const sql =
-        'select s.jsonData, u.username ' +
+        'select s.jsonData, u.id, u.username ' +
         'from sessions as s ' +
         'left outer join users as u ' +
         'on s.userId = u.id ' +
@@ -41,6 +41,7 @@ async function retrieve(sessionId) {
     return null;
   } else {
     return {
+      userId: result.rows[0].id,
       username: result.rows[0].username,
       sessionData: JSON.parse(result.rows[0].jsondata) // note the small caps
     };

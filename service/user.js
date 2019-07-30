@@ -51,6 +51,7 @@ async function createPreSession() {
   const sessionId = await sessionsRepo.create(initialSessionData);
   return {
     id: sessionId,
+    userId: null,
     username: null,
     data: initialSessionData
   };
@@ -72,9 +73,10 @@ async function getSession(sessionId) {
   if (session == null) {
     return null;
   } else {
-    const { username, sessionData } = session;
+    const { userId, username, sessionData } = session;
     return {
       id: sessionId,
+      userId: userId,
       username: username,
       data: sessionData
     };
