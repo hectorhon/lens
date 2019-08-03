@@ -1,21 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
-        <title>{{title}}</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <link rel='stylesheet' href='/static/stylesheets/style.css' />
+        <title>{{title}}</title>
     </head>
     <body>
-        <form action="/logout" method="post">
-            <input type="hidden" name="csrfToken" value="{{ session.data.csrfToken }}" />
-            <button>Logout</button>
-        </form>
-        {{#if session.data.flashMessages}}
-            <div>
-                {{#each session.data.flashMessages}}
-                    <p>{{this}}</p>
-                {{/each}}
-            </div>
-        {{/if}}
-        {{{body}}}
+        <div class="container-fluid">
+            <form action="/logout" method="post">
+                <input type="hidden" name="csrfToken" value="{{ session.data.csrfToken }}" />
+                <button>Logout</button>
+            </form>
+            {{#if session.data.flashMessages}}
+                <div>
+                    {{#each session.data.flashMessages}}
+                        <p>{{this}}</p>
+                    {{/each}}
+                </div>
+            {{/if}}
+            {{{body}}}
+        </div>
+        <script src="/static/javascripts/jquery.js"></script>
+        <script src="/static/javascripts/popper.js"></script>
+        <script src="/static/javascripts/bootstrap.js"></script>
     </body>
 </html>
