@@ -22,23 +22,29 @@ app.set('view engine', 'hbs');
 // block and extend helpers - hbs/examples/extend/app.js
 var blocks = {};
 hbs.registerHelper('extend', function(name, context) {
-    var block = blocks[name];
-    if (!block) {
-        block = blocks[name] = [];
-    }
-    block.push(context.fn(this));
+  var block = blocks[name];
+  if (!block) {
+    block = blocks[name] = [];
+  }
+  block.push(context.fn(this));
 });
 hbs.registerHelper('block', function(name) {
-    var val = (blocks[name] || []).join('\n');
-    // clear the block
-    blocks[name] = [];
-    return val;
+  var val = (blocks[name] || []).join('\n');
+  // clear the block
+  blocks[name] = [];
+  return val;
 });
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// Allow source map requests, which are sent without cookies, in dev
+// by exposing the entire static folder
+if (app.get('env') === 'development') {
+  app.use('/static', express.static(path.join(__dirname, 'public')));
+}
 
 // Load user session to res.locals.session, if present
 // Otherwise generate a pre-session for the anonymous user
@@ -100,7 +106,7 @@ authenticationMiddleware.all('*', function(req, res, next) {
   if (res.locals.session.username) {
     next();
   } else {
-    if (req.path.indexOf('/static/') == 0) {
+    if (req.path.startsWith('/static/')) {
       // static files, return 403 instead of login page
       res.status(403).end();
     } else {
@@ -115,7 +121,8 @@ app.use('/static/stylesheets', sassMiddleware({
   src: path.join(__dirname, 'public/stylesheets'),
   dest: path.join(__dirname, 'public/stylesheets'),
   indentedSyntax: false, // true = .sass and false = .scss
-  sourceMap: true
+  sourceMap: true,
+  sourceMapContents: true // avoid pointing to node_modules
 }));
 
 // Static files
@@ -124,7 +131,7 @@ app.use('/static', express.static(path.join(__dirname, 'public')));
 // Remove loaded flash message from session
 const clearFlashMessageMiddleware = express.Router();
 clearFlashMessageMiddleware.all('*', function(req, res, next) {
-  if (req.path.indexOf('/api/') == 0) {
+  if (req.path.startsWith('/api/')) {
     // Don't remove flash messages for API calls
     next();
   } else if (req.method == 'GET') {
