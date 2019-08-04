@@ -2,8 +2,9 @@
 <p><a href="/images" >All images</a></p>
 <div class="row">
     <div class="col-sm-6">
-        <img class="img-fluid rounded mx-auto d-block"
-             src="/images/get?id={{ imageId }}&fullsize=true" />
+        <div id="select-tool"
+             data-img-classes="img-fluid rounded mx-auto d-block"
+             data-image-src="/images/get?id={{ imageId }}&fullsize=true"></div>
     </div>
     <div class="col-sm-6">
         <div id="like_button_container"></div>
@@ -19,5 +20,17 @@
 {{#extend "scripts"}}
     <script src="/static/javascripts/react.development.js"></script>
     <script src="/static/javascripts/react-dom.development.js"></script>
-    <script src="/static/javascripts/app/compiled/images/like-button.js"></script>
+    <script src="/static/javascripts/app/compiled/images/select-tool.js"></script>
+    <script>
+     function render(componentType, destination, moreProps) {
+       let domContainer = document.querySelector(destination);
+       ReactDOM.render(React.createElement(componentType, {
+         ...domContainer.dataset,
+         ...moreProps,
+       }), domContainer);
+     }
+     render(SelectTool, '#select-tool', {
+       callback: () => /* alert('callback')*/ null,
+     });
+    </script>
 {{/extend}}
