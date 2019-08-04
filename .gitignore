@@ -66,3 +66,6 @@ public/stylesheets/*.css.map
 
 # data directory
 data/
+
+# compiled jsx
+public/javascripts/app/compiled/

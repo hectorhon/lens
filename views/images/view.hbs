@@ -6,6 +6,7 @@
              src="/images/get?id={{ imageId }}&fullsize=true" />
     </div>
     <div class="col-sm-6">
+        <div id="like_button_container"></div>
         <dl class="row">
             {{#each entry}}
                 <dt class="col-sm-3">{{@key}}</dt>
@@ -16,7 +17,7 @@
 </div>
 
 {{#extend "scripts"}}
-    <script>
-     alert('asdf')
-    </script>
+    <script src="/static/javascripts/react.development.js"></script>
+    <script src="/static/javascripts/react-dom.development.js"></script>
+    <script src="/static/javascripts/app/compiled/images/like-button.js"></script>
 {{/extend}}
