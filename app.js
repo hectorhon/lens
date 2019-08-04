@@ -111,9 +111,9 @@ authenticationMiddleware.all('*', function(req, res, next) {
 app.use('/', authenticationMiddleware);
 
 // Stylesheets
-app.use(sassMiddleware({
-  src: path.join(__dirname, 'public'),
-  dest: path.join(__dirname, 'public'),
+app.use('/static/stylesheets', sassMiddleware({
+  src: path.join(__dirname, 'public/stylesheets'),
+  dest: path.join(__dirname, 'public/stylesheets'),
   indentedSyntax: false, // true = .sass and false = .scss
   sourceMap: true
 }));
