@@ -3,6 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var hbs = require('hbs');
 var sassMiddleware = require('node-sass-middleware');
 
 const userService = require('./service/user');
@@ -17,6 +18,22 @@ var app = express();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
+
+// block and extend helpers - hbs/examples/extend/app.js
+var blocks = {};
+hbs.registerHelper('extend', function(name, context) {
+    var block = blocks[name];
+    if (!block) {
+        block = blocks[name] = [];
+    }
+    block.push(context.fn(this));
+});
+hbs.registerHelper('block', function(name) {
+    var val = (blocks[name] || []).join('\n');
+    // clear the block
+    blocks[name] = [];
+    return val;
+});
 
 app.use(logger('dev'));
 app.use(express.json());
