@@ -35,6 +35,7 @@ async function getThumbnailFilepath(imageId) {
   return new Promise(function(resolve, reject) {
     fs.access(thumbFilepath, fs.constants.F_OK, (err) => {
       if (err) {
+        console.log(`Generating thumbnail for ${filepath}`);
         sharp(filepath)
           .resize(THUMBNAIL_MAX_SIZE.x, THUMBNAIL_MAX_SIZE.y, {
             fit: 'inside',

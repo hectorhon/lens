@@ -83,7 +83,6 @@ router.get('/images/get', route(async(req, res) => {
   } else {
     var filepath = await imageService.getThumbnailFilepath(imageId);
   }
-  console.log(filepath);
   res.sendFile(filepath, { root: process.cwd() });
 }));
 
