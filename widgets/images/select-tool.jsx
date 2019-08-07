@@ -98,9 +98,9 @@ class SelectRegion extends React.Component {
     const rows = 40;
     const columns = 5;
     const spacing = 4;
-    const boxWidth = Math.floor((width - spacing) / columns - spacing);
-    const boxHeight = Math.floor((height - spacing) / rows - spacing);
     console.log(boxWidth, boxHeight);
+    const boxWidth = (width - spacing) / columns - spacing;
+    const boxHeight = (height - spacing) / rows - spacing;
     var boxes = [];
     if (boxWidth > spacing + 4 && boxHeight > spacing + 4) {
       for (let row = 0; row < rows; row++) {
