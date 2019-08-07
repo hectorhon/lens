@@ -78,8 +78,8 @@ class SelectTool extends React.Component {
 
   getRelativeMousePosition(e) {
     var rect = e.currentTarget.getBoundingClientRect();
-    var x = e.pageX - rect.left;
-    var y = e.pageY - rect.top;
+    var x = e.pageX - rect.left - window.scrollX;
+    var y = e.pageY - rect.top - window.scrollY;
     return { x, y };
   }
 
