@@ -15,16 +15,18 @@ class SelectTool extends React.Component {
            onMouseDownCapture={e => this.handleMouseDown(e)}
            onMouseMoveCapture={e => this.handleMouseMove(e)}
            onMouseUpCapture={e => this.handleMouseUp(e)} >
-          {this.state.selection &&
-           <SelectRegion x1={this.state.selection.x1}
-                         y1={this.state.selection.y1}
-                         x2={this.state.selection.x2}
-                         y2={this.state.selection.y2} />}
-          {this.state.point1 && this.state.point2 &&
-           <SelectRegion x1={this.state.point1.x}
-                         y1={this.state.point1.y}
-                         x2={this.state.point2.x}
-                         y2={this.state.point2.y} />}
+          <svg style={{ position: "absolute", width: "100%", height: "100%" }}>
+              {this.state.selection &&
+               <SelectRegion x1={this.state.selection.x1}
+                             y1={this.state.selection.y1}
+                             x2={this.state.selection.x2}
+                             y2={this.state.selection.y2} />}
+              {this.state.point1 && this.state.point2 &&
+               <SelectRegion x1={this.state.point1.x}
+                             y1={this.state.point1.y}
+                             x2={this.state.point2.x}
+                             y2={this.state.point2.y} />}
+          </svg>
           <img className={this.props.imgClasses}
                src={this.props.imageSrc}
                onClick={() => this.props.callback()}
@@ -97,8 +99,7 @@ class SelectRegion extends React.Component {
 
     const rows = 40;
     const columns = 5;
-    const spacing = 4;
-    console.log(boxWidth, boxHeight);
+    const spacing = 2;
     const boxWidth = (width - spacing) / columns - spacing;
     const boxHeight = (height - spacing) / rows - spacing;
     var boxes = [];
@@ -106,19 +107,21 @@ class SelectRegion extends React.Component {
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < columns; col++) {
           boxes.push({
-            x: spacing + col * (boxWidth + spacing),
-            y: spacing + row * (boxHeight + spacing),
+            x: x1 + spacing + col * (boxWidth + spacing),
+            y: y1 + spacing + row * (boxHeight + spacing),
+            width: boxWidth,
+            height: boxHeight
           });
         }
       }
     }
     return (
-      <Rectangle x={x1} y={y1} width={width} height={height}>
-          {boxes.map(({ x, y }, index) => (
-            <Rectangle x={x} y={y} width={boxWidth} height={boxHeight}
-                       key={index} />
+      <>
+          <Rectangle x={x1} y={y1} width={width} height={height} />
+          {boxes.map((props, index) => (
+            <Rectangle {...props} key={index} />
           ))}
-      </Rectangle>
+      </>
     );
   }
 
@@ -128,40 +131,13 @@ class Rectangle extends React.Component {
 
   render() {
     return (
-      <div style={{
-        position: "absolute",
-        left: this.props.x + "px",
-        top: this.props.y + "px",
-        width: this.props.width + "px",
-        height: this.props.height + "px",
-        border: "1px solid black",
-      }}>
-          {this.props.children}
-      </div>
-    );
-  }
-
-}
-
-class Rectangle0 extends React.Component {
-
-  render() {
-    const x1 = Math.min(this.props.x1, this.props.x2);
-    const y1 = Math.min(this.props.y1, this.props.y2);
-    const x2 = Math.max(this.props.x1, this.props.x2);
-    const y2 = Math.max(this.props.y1, this.props.y2);
-    const width = x2 - x1;
-    const height = y2 - y1;
-    return (
-      <div style={{
-        position: "absolute",
-        left: x1 + "px",
-        top: y1 + "px",
-        width: width + "px",
-        height: height + "px",
-        border: "1px solid black",
-      }}>
-      </div>
+      <rect width={this.props.width}
+            height={this.props.height}
+            x={this.props.x}
+            y={this.props.y}
+            stroke="black"
+            strokeWidth="1"
+            fillOpacity="0" />
     );
   }
 
