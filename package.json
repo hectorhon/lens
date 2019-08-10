@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "dev": "webpack --watch & DEBUG=lens:* npx nodemon --ignore static/"
+    "dev": "webpack --watch & DEBUG=lens:* npx nodemon --ignore static/",
+    "etags": "find . -path ./node_modules -prune -o -path ./static -prune -o -type f \\( -iname \"*.js\" -o -iname \"*.jsx\" \\) -print | etags -"
   },
   "dependencies": {
     "bootstrap": "^4.3.1",

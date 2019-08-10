@@ -64,6 +64,9 @@ typings/
 static/stylesheets/*.css
 static/stylesheets/*.css.map
 
+# tags file
+TAGS
+
 # data directory
 data/
 
