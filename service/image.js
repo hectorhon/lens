@@ -52,9 +52,7 @@ async function getThumbnailFilepath(imageId) {
 }
 
 async function getImageEntry(imageId) {
-  const imageEntry = await imagesRepo.retrieve(imageId);
-  // return { id: imageId, ...imageEntry };
-  return imageEntry;
+  return imagesRepo.retrieve(imageId);
 }
 
 module.exports = {

@@ -30,15 +30,15 @@ async function record(filepath, size, originalName, uploadUserId) {
 }
 
 async function list() {
-  const sql = 'select id, originalName from images';
+  const sql = 'select id, originalName as "originalName" from images';
   const result = await db.query(sql);
   return result.rows;
 }
 
 async function retrieve(imageId) {
   const sql =
-        'select filepath, size, originalName, ' +
-        'uploadedBy, uploadDate from images ' +
+        'select filepath, size, originalName as "originalName", ' +
+        'uploadedBy as "uploadedBy", uploadDate as "uploadDate" from images ' +
         'where id = $1';
   const result = await db.query(sql, [imageId]);
   return result.rowCount == 0 ? null : result.rows[0];

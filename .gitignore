@@ -69,3 +69,6 @@ data/
 
 # compiled jsx
 static/javascripts/app/compiled/
+
+# compiled scss
+static/stylesheets/app/compiled/

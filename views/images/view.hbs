@@ -1,36 +1,14 @@
+{{#extend "stylesheets" }}
+    <link rel='stylesheet' href='/static/stylesheets/app/compiled/imageSelectTool.css' />
+{{/extend}}
+
 <h1>View image</h1>
 <p><a href="/images" >All images</a></p>
-<div class="row">
-    <div class="col-sm-6">
-        <div id="select-tool"
-             data-img-classes="img-fluid rounded mx-auto d-block"
-             data-image-src="/images/get?id={{ imageId }}&fullsize=true"></div>
-    </div>
-    <div class="col-sm-6">
-        <div id="like_button_container"></div>
-        <dl class="row">
-            {{#each entry}}
-                <dt class="col-sm-3">{{@key}}</dt>
-                <dd class="col-sm-9">{{this}}</dd>
-            {{/each}}
-        </dl>
-    </div>
-</div>
+<div id="select-tool-container" />
 
 {{#extend "scripts"}}
-    <script src="/static/javascripts/react.development.js"></script>
-    <script src="/static/javascripts/react-dom.development.js"></script>
-    <script src="/static/javascripts/app/compiled/images/select-tool.js"></script>
     <script>
-     function render(componentType, destination, moreProps) {
-       let domContainer = document.querySelector(destination);
-       ReactDOM.render(React.createElement(componentType, {
-         ...domContainer.dataset,
-         ...moreProps,
-       }), domContainer);
-     }
-     render(SelectTool, '#select-tool', {
-       callback: () => /* alert('callback')*/ null,
-     });
+     var image = {{{ json image }}};
     </script>
+    <script src="/static/javascripts/app/compiled/imageSelectTool.js"></script>
 {{/extend}}

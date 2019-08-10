@@ -34,6 +34,9 @@ hbs.registerHelper('block', function(name) {
   blocks[name] = [];
   return val;
 });
+hbs.registerHelper('json', function(context) {
+  return JSON.stringify(context);
+});
 
 app.use(logger('dev'));
 app.use(express.json());

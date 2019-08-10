@@ -76,6 +76,7 @@ router.post ('/images/upload', upload.single('file'), csrfCheck, route(async (re
   res.redirect('/images');
 }));
 
+/* GET the actual image */
 router.get('/images/get', route(async(req, res) => {
   const imageId = req.query.id;
   if (req.query.fullsize) {
@@ -90,12 +91,12 @@ router.get('/images/view', route(async(req, res) => {
   const imageId = req.query.id;
   const imageEntry = await imageService.getImageEntry(imageId);
   res.render('images/view', {
-    imageId: imageId,
-    entry: {
+    image: {
+      id: imageId,
       size: imageEntry.size,
-      originalname: imageEntry.originalname,
-      uploaddate: imageEntry.uploaddate,
-    }
+      originalName: imageEntry.originalName,
+      uploadDate: imageEntry.uploadDate
+    },
   });
 }));
 
