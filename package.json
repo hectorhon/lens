@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "jsx": "npx babel --verbose --watch widgets/ --out-dir public/javascripts/app/compiled/ --presets @babel/preset-react",
-    "dev": "npm run jsx & DEBUG=lens:* npx nodemon --ignore public/"
+    "jsx": "npx babel --verbose --watch widgets/ --out-dir static/javascripts/app/compiled/ --presets @babel/preset-react",
+    "dev": "npm run jsx & DEBUG=lens:* npx nodemon --ignore static/"
   },
   "dependencies": {
     "bootstrap": "^4.3.1",

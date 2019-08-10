@@ -43,7 +43,7 @@ app.use(cookieParser());
 // Allow source map requests, which are sent without cookies, in dev
 // by exposing the entire static folder
 if (app.get('env') === 'development') {
-  app.use('/static', express.static(path.join(__dirname, 'public')));
+  app.use('/static', express.static(path.join(__dirname, 'static')));
 }
 
 // Load user session to res.locals.session, if present
@@ -118,15 +118,15 @@ app.use('/', authenticationMiddleware);
 
 // Stylesheets
 app.use('/static/stylesheets', sassMiddleware({
-  src: path.join(__dirname, 'public/stylesheets'),
-  dest: path.join(__dirname, 'public/stylesheets'),
+  src: path.join(__dirname, 'static/stylesheets'),
+  dest: path.join(__dirname, 'static/stylesheets'),
   indentedSyntax: false, // true = .sass and false = .scss
   sourceMap: true,
   sourceMapContents: true // avoid pointing to node_modules
 }));
 
 // Static files
-app.use('/static', express.static(path.join(__dirname, 'public')));
+app.use('/static', express.static(path.join(__dirname, 'static')));
 
 // Remove loaded flash message from session
 const clearFlashMessageMiddleware = express.Router();

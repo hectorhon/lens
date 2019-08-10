@@ -61,11 +61,11 @@ typings/
 .next
 
 # generated css files and maps
-public/stylesheets/*.css
-public/stylesheets/*.css.map
+static/stylesheets/*.css
+static/stylesheets/*.css.map
 
 # data directory
 data/
 
 # compiled jsx
-public/javascripts/app/compiled/
+static/javascripts/app/compiled/
