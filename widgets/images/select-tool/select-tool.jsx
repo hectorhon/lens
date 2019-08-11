@@ -1,7 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
+import update from 'immutability-helper';
 
+import SvgContext from './svg-context.js';
 import SvgSelectRegion from './svg-select-region.jsx';
 import ImageProperties from './image-properties.jsx';
 
@@ -14,29 +16,54 @@ class SelectTool extends React.Component {
     this.state = {
       candidatePoint1: null,
       candidatePoint2: null,
-      selections: []
+      selections: [],
+      svgContext: {}, // https://reactjs.org/docs/context.html#caveats
     };
+    this.svgRef = React.createRef();
+  }
+
+  componentDidMount() {
+    const rect = this.svgRef.current.getBoundingClientRect();
+    const baseX = rect.x + window.scrollX;
+    const baseY = rect.y + window.scrollY;
+    this.setState({
+      svgContext: {
+        baseX, baseY,
+        getRelativeMousePosition: e => {
+          var x = e.pageX - baseX;
+          var y = e.pageY - baseY;
+          return { x, y };
+        }
+      }
+    });
   }
 
   render() {
     return (
-      <div className="row select-tool thing">
+      <div className="row select-tool">
           <div className="col-sm-6">
               <div className="select-tool__image-display"
-                   onMouseDown={(e) => this.handleMouseDown(e)}
-                   onMouseMove={(e) => this.handleMouseMove(e)}
-                   onMouseUp={(e) => this.handleMouseUp(e)}
-                   onMouseLeave={(e) => this.handleMouseLeave(e)} >
-                  <svg>
-                      {this.state.candidatePoint1 && this.state.candidatePoint2 &&
-                       <SvgSelectRegion x1={this.state.candidatePoint1.x}
-                                        y1={this.state.candidatePoint1.y}
-                                        x2={this.state.candidatePoint2.x}
-                                        y2={this.state.candidatePoint2.y} />}
-                      {this.state.selections.map(selection => (
-                        <SvgSelectRegion {...selection} />
-                      ))}
-                  </svg>
+                   onMouseDown={this.handleMouseDown}
+                   onMouseMove={this.handleMouseMove}
+                   onMouseUp={this.handleMouseUp} >
+                  <SvgContext.Provider value={this.state.svgContext}>
+                      <svg ref={this.svgRef}>
+                          {this.state.candidatePoint1 && this.state.candidatePoint2 &&
+                           <SvgSelectRegion x1={this.state.candidatePoint1.x}
+                                            y1={this.state.candidatePoint1.y}
+                                            x2={this.state.candidatePoint2.x}
+                                            y2={this.state.candidatePoint2.y} />
+                          }
+                          {this.state.selections.map((selection, index, selections) => (
+                            <SvgSelectRegion key={index}
+                                             {...selection}
+                                             selectionIndex={index}
+                                             onRegionCoordsChanged={this.modifySelection}
+                                             onMouseEnter={this.moveSelectionToTop}
+                                             highlight={index === selections.length - 1} />
+                          ))}
+                      </svg>
+                  </SvgContext.Provider>
                   <img src={`/images/get?id=${this.props.image.id}&fullsize=true`}
                        className="img-fluid rounded mx-auto d-block" />
               </div>
@@ -48,26 +75,24 @@ class SelectTool extends React.Component {
     );
   }
 
-  handleMouseDown(e) {
-    e.preventDefault();
-    const { x, y } = this.getRelativeMousePosition(e);
+  handleMouseDown = e => {
+    const { x, y } = this.state.svgContext.getRelativeMousePosition(e);
     this.setState({
       candidatePoint1: { x, y },
       candidatePoint2: { x, y },
     });
   }
 
-  handleMouseMove(e) {
-    e.preventDefault();
+  handleMouseMove = e => {
     if (this.state.candidatePoint1) {
       this.setState({
-        candidatePoint2: this.getRelativeMousePosition(e)
+        candidatePoint2: this.state.svgContext.getRelativeMousePosition(e)
       });
     }
   }
 
-  handleMouseUp(e) {
-    e.preventDefault();
+  handleMouseUp = e => {
+    if (!this.state.candidatePoint1) return;
     const MIN_WIDTH = 100;
     const MIN_HEIGHT = 100;
     const width = Math.abs(this.state.candidatePoint1.x - this.state.candidatePoint2.x);
@@ -84,14 +109,22 @@ class SelectTool extends React.Component {
     });
   }
 
-  handleMouseLeave(e) {
+  handleMouseLeave = e => {
     this.setState({
       candidatePoint1: null,
       candidatePoint2: null
     });
   }
 
-  addSelection(x1, y1, x2, y2) {
+  modifySelection = (index, x1, y1, x2, y2) => {
+    this.setState(prevState => {
+      return {
+        selections: update(prevState.selections, { [index]: { $set: { x1, y1, x2, y2 } } })
+      };
+    });
+  }
+
+  addSelection = (x1, y1, x2, y2) => {
     this.setState(prevState => {
       return {
         selections: [...prevState.selections, { x1, y1, x2, y2 }]
@@ -99,11 +132,16 @@ class SelectTool extends React.Component {
     });
   }
 
-  getRelativeMousePosition(e) {
-    var rect = e.currentTarget.getBoundingClientRect();
-    var x = e.pageX - rect.left - window.scrollX;
-    var y = e.pageY - rect.top - window.scrollY;
-    return { x, y };
+  // need this because svg z-index is not supported
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=360148
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=670177
+  moveSelectionToTop = index => {
+    this.setState(prevState => {
+      const target = prevState.selections[index];
+      return {
+        selections: [...update(prevState.selections, { $splice: [[index, 1]] }), target]
+      }
+    });
   }
 
 }

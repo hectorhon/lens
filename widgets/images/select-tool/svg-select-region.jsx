@@ -1,8 +1,16 @@
 import React from 'react';
 
+import SvgContext from './svg-context.js';
+import SvgSelectRegionHandle from './svg-select-region-handle.jsx';
 import SvgRectangle from './svg-rectangle.jsx';
 
 class SvgSelectRegion extends React.Component {
+
+  static contextType = SvgContext;
+
+  constructor(props) {
+    super(props);
+  }
 
   render() {
     const x1 = Math.min(this.props.x1, this.props.x2);
@@ -30,16 +38,37 @@ class SvgSelectRegion extends React.Component {
         }
       }
     }
+
+    const frame = (
+      <SvgRectangle x={x1} y={y1} width={width} height={height}
+                    stroke={this.props.highlight ? "green" : "black" } />
+    );
+
     return (
-      <>
-          <SvgRectangle x={x1} y={y1} width={width} height={height} />
+      <g onMouseEnter={this.handleMouseEnter} >
+          {frame}
           {boxes.map((props, index) => (
             <SvgRectangle {...props} key={index} />
           ))}
-      </>
+          <SvgSelectRegionHandle x={x1} y={y1} onNewPosition={this.updateTopLeft} />
+      </g>
     );
   }
 
+  updateTopLeft = (x1, y1) => {
+    this.props.onRegionCoordsChanged(this.props.selectionIndex,
+                                     x1, y1, this.props.x2, this.props.y2);
+  }
+
+  handleMouseEnter = e => {
+    this.props.onMouseEnter(this.props.selectionIndex);
+  }
+
 }
+
+SvgSelectRegion.defaultProps = {
+  onRegionCoordsChanged: function() {},
+  onMouseEnter: function() {}
+};
 
 export default SvgSelectRegion;
