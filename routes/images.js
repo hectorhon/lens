@@ -27,7 +27,7 @@ const upload = multer({
       // anyway when getting the physical file path. So, no need to
       // make uuid in physical file path same as db key.
       // file.imageId = imageId;
-      cb(null, Date.now() + '-' + imageId + '.' + extension);
+      cb(null, Date.now() + '-' + imageId + (extension ? '.' + extension : ''));
     }
   })
 });
