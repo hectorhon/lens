@@ -7,6 +7,7 @@ import uuid from 'uuid';
 import SvgContext from './svg-context.js';
 import SvgSelectRegion from './svg-select-region.jsx';
 import ImageProperties from './image-properties.jsx';
+import SelectRegionProperties from './select-region-properties.jsx';
 
 import css from './select-tool.scss';
 
@@ -81,6 +82,7 @@ class SelectTool extends React.Component {
           </div>
           <div className="col-sm-6">
               <ImageProperties {...this.props.image} />
+              <SelectRegionProperties selections={this.state.selections} />
           </div>
       </div>
     );
