@@ -36,4 +36,9 @@ class SvgRectangle extends React.Component {
 
 }
 
+
+SvgRectangle.defaultProps = {
+  stroke: 'black'
+}
+
 export default SvgRectangle;

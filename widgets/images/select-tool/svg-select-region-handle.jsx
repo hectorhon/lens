@@ -17,23 +17,28 @@ class SvgSelectRegionHandle extends React.Component {
 
   render() {
     return (
-      <circle cx={this.props.x} cy={this.props.y} r={16}
+      <circle cx={this.props.x} cy={this.props.y} r={4}
+              fill="white" stroke="black" strokeWidth={1}
               onMouseDown={this.handleMouseDown}
-              onMouseMove={this.handleMouseMove}
-              onMouseUp={this.handleMouseUp}
-              onMouseLeave={this.handleMouseLeave} />
+              onMouseUp={this.handleMouseUp} />
     );
   }
 
+  componentWillUnmount() {
+    this.context.svgRef.current.removeEventListener('mousemove', this.handleMouseMove);
+  }
+
   handleMouseDown = e => {
-    e.stopPropagation();
-    e.preventDefault();
+    e.stopPropagation(); // needed to avoid creating new region
+    e.preventDefault();  // needed to avoid triggering drag
     const { x, y } = this.context.getRelativeMousePosition(e);
     this.setState({
       dragging: true,
       offsetX: x - this.props.x,
       offsetY: y - this.props.y
     });
+    this.props.onDragStart && this.props.onDragStart();
+    this.context.svgRef.current.addEventListener('mousemove', this.handleMouseMove);
   }
 
   handleMouseMove = e => {
@@ -44,21 +49,13 @@ class SvgSelectRegionHandle extends React.Component {
   }
 
   handleMouseUp = e => {
-    e.stopPropagation();
-    e.preventDefault();
     this.setState({
       dragging: false,
       offsetX: null,
       offsetY: null
     });
-  }
-
-  handleMouseLeave = e => {
-    this.setState({
-      dragging: false,
-      offsetX: null,
-      offsetY: null
-    });
+    this.props.onDragStop && this.props.onDragStop();
+    this.context.svgRef.current.removeEventListener('mousemove', this.handleMouseMove);
   }
 
 }
