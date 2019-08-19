@@ -19,11 +19,9 @@ class SelectRegionProperties extends React.Component {
       </React.Fragment>
     ));
     return (
-      <form>
-          <div className="form-group">
-              {fields}
-          </div>
-      </form>
+      <div className="form-group">
+          {fields}
+      </div>
     );
   }
 

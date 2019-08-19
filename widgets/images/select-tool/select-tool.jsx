@@ -83,16 +83,21 @@ class SelectTool extends React.Component {
           <div className="col-sm-6">
               <ImageProperties {...this.props.image} />
               {this.state.selections.length > 0 &&
-               <>
-                   <select value={this.getCurrentFocusedSelectRegion().id}
-                           onChange={e => this.focusSelectRegion(e.target.value)}>
-                       {this.state.selections.map(selection => selection.id).sort().map(id => (
-                         <option key={id} value={id}>{id}</option>
-                       ))}
-                   </select>
-                   <SelectRegionProperties selection={this.getCurrentFocusedSelectRegion()}
-                                           modifySelection={this.modifySelection} />
-               </>
+               <div className="row sticky-top">
+                   <form>
+                       <div className="form-group">
+                           <select className="form-control"
+                                   value={this.getCurrentFocusedSelectRegion().id}
+                                   onChange={e => this.focusSelectRegion(e.target.value)}>
+                               {this.state.selections.map(selection => selection.id).sort().map(id => (
+                                 <option key={id} value={id}>{id}</option>
+                               ))}
+                           </select>
+                       </div>
+                       <SelectRegionProperties selection={this.getCurrentFocusedSelectRegion()}
+                                               modifySelection={this.modifySelection} />
+                   </form>
+               </div>
               }
           </div>
       </div>
