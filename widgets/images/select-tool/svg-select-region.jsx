@@ -14,7 +14,6 @@ class SvgSelectRegion extends React.Component {
   }
 
   render() {
-
     const { x1, y1, x2, y2, width, height, boxes } =
       this.computeDerivedPropsMemoized(this.props.x1, this.props.y1, this.props.x2, this.props.y2);
 
@@ -29,9 +28,13 @@ class SvgSelectRegion extends React.Component {
           {boxes.map((props, index) => (
             <SvgRectangle {...props} key={index} />
           ))}
-          <SvgSelectRegionHandle x={x1} y={y1}
+          <SvgSelectRegionHandle x={this.props.x1} y={this.props.y1}
                                  onDragStart={this.props.onDragStart}
                                  onNewPosition={this.updateTopLeft}
+                                 onDragStop={this.props.onDragStop} />
+          <SvgSelectRegionHandle x={this.props.x2} y={this.props.y2}
+                                 onDragStart={this.props.onDragStart}
+                                 onNewPosition={this.updateBottomRight}
                                  onDragStop={this.props.onDragStop} />
       </g>
     );
@@ -69,8 +72,20 @@ class SvgSelectRegion extends React.Component {
 
   updateTopLeft = (x1, y1) => {
     this.props.onRegionCoordsChanged &&
-    this.props.onRegionCoordsChanged(this.props.id,
-                                     x1, y1, this.props.x2, this.props.y2);
+    this.props.onRegionCoordsChanged(this.props.id, {
+      x1, y1,
+      x2: this.props.x2,
+      y2: this.props.y2,
+    });
+  }
+
+  updateBottomRight = (x2, y2) => {
+    this.props.onRegionCoordsChanged &&
+    this.props.onRegionCoordsChanged(this.props.id, {
+      x1: this.props.x1,
+      y1: this.props.y1,
+      x2, y2
+    });
   }
 
   handleMouseEnter = e => {

@@ -82,7 +82,18 @@ class SelectTool extends React.Component {
           </div>
           <div className="col-sm-6">
               <ImageProperties {...this.props.image} />
-              <SelectRegionProperties selections={this.state.selections} />
+              {this.state.selections.length > 0 &&
+               <>
+                   <select value={this.getCurrentFocusedSelectRegion().id}
+                           onChange={e => this.focusSelectRegion(e.target.value)}>
+                       {this.state.selections.map(selection => selection.id).sort().map(id => (
+                         <option key={id} value={id}>{id}</option>
+                       ))}
+                   </select>
+                   <SelectRegionProperties selection={this.getCurrentFocusedSelectRegion()}
+                                           modifySelection={this.modifySelection} />
+               </>
+              }
           </div>
       </div>
     );
@@ -129,11 +140,12 @@ class SelectTool extends React.Component {
     });
   }
 
-  modifySelection = (id, x1, y1, x2, y2) => {
+  modifySelection = (id, x1y1x2y2) => {
+    // const { x1, y1, x2, y2 } = x1y1x2y2;
     this.setState(prevState => {
       const index = prevState.selections.findIndex(selection => selection.id == id);
       return {
-        selections: update(prevState.selections, { [index]: { $merge: { x1, y1, x2, y2 } } })
+        selections: update(prevState.selections, { [index]: { $merge: x1y1x2y2 } })
       };
     });
   }
@@ -158,6 +170,14 @@ class SelectTool extends React.Component {
         selections: [...update(prevState.selections, { $splice: [[index, 1]] }), target]
       }
     });
+  }
+
+  getCurrentFocusedSelectRegion = () => {
+    if (this.state.selections.length) {
+      return this.state.selections[this.state.selections.length-1];
+    } else {
+      return undefined;
+    }
   }
 
 }

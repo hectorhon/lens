@@ -26,6 +26,7 @@ class SvgSelectRegionHandle extends React.Component {
 
   componentWillUnmount() {
     this.context.svgRef.current.removeEventListener('mousemove', this.handleMouseMove);
+    this.context.svgRef.current.removeEventListener('mouseup', this.handleMouseUp);
   }
 
   handleMouseDown = e => {
@@ -39,6 +40,7 @@ class SvgSelectRegionHandle extends React.Component {
     });
     this.props.onDragStart && this.props.onDragStart();
     this.context.svgRef.current.addEventListener('mousemove', this.handleMouseMove);
+    this.context.svgRef.current.addEventListener('mouseup', this.handleMouseUp);
   }
 
   handleMouseMove = e => {
@@ -56,6 +58,7 @@ class SvgSelectRegionHandle extends React.Component {
     });
     this.props.onDragStop && this.props.onDragStop();
     this.context.svgRef.current.removeEventListener('mousemove', this.handleMouseMove);
+    this.context.svgRef.current.removeEventListener('mouseup', this.handleMouseUp);
   }
 
 }
