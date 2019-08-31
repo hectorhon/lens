@@ -22,6 +22,11 @@ module.exports = {
   ],
   rules: {
     'semi': ['error', 'never'],
-    'comma-dangle': 'off'
+    'comma-dangle': 'off',
+    'arrow-parens': ['error', 'as-needed'],
+    'react/jsx-indent-props': ['error', 'first'],
+    'react/jsx-first-prop-new-line': ['error', 'never'],
+    'react/jsx-closing-bracket-location': ['error', 'after-props'],
+    'react/jsx-one-expression-per-line': 'off',
   },
-};
+}
