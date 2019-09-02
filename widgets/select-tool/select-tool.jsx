@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import Selection from './selection'
 import SelectionCandidateSvgRect from './selection-candidate-svg-rect'
 import SelectionSvgRect from './selection-svg-rect'
+import ActiveSelectionSettingsPanel from './active-selection-settings-panel'
 
 class SelectTool extends React.Component {
   constructor(props) {
@@ -20,6 +21,8 @@ class SelectTool extends React.Component {
     this.addSelection = this.addSelection.bind(this)
     this.changeActiveSelection = this.changeActiveSelection.bind(this)
     this.handleSelectChange = this.handleSelectChange.bind(this)
+    this.updateActiveSelection = this.updateActiveSelection.bind(this)
+    this.getActiveSelection = this.getActiveSelection.bind(this)
   }
 
   static getCoordinates(e) {
@@ -27,6 +30,22 @@ class SelectTool extends React.Component {
     const x = e.clientX - left
     const y = e.clientY - top
     return { x, y }
+  }
+
+  getActiveSelection() {
+    const { selections } = this.state
+    const selection = selections[selections.length - 1]
+    return selection
+  }
+
+  // f takes a selection updates it in place
+  updateActiveSelection(f) {
+    const { selections } = this.state
+    const selection = this.getActiveSelection()
+    f(selection)
+    this.setState({
+      selections: selections.slice()
+    })
   }
 
   handleMouseDown(e) {
@@ -104,6 +123,25 @@ class SelectTool extends React.Component {
       const { x: x2, y: y2 } = mouseCurrentPoint
       candidateSelection = new Selection(x1, y1, x2, y2)
     }
+
+    let settingsPanel
+    if (selections.length) {
+      const selectionSelector = (
+        <select value={selections[selections.length - 1].id} onChange={this.handleSelectChange}>
+          {selections.map(selection => (
+            <option key={selection.id} value={selection.id}>{selection.id}</option>
+          ))}
+        </select>
+      )
+      settingsPanel = (
+        <>
+          {selectionSelector}
+          <ActiveSelectionSettingsPanel updateFunction={this.updateActiveSelection}
+                                        getFunction={this.getActiveSelection} />
+        </>
+      )
+    }
+
     return (
       <div>
         <div role="presentation"
@@ -116,6 +154,8 @@ class SelectTool extends React.Component {
             {selections.map(selection => (
               <SelectionSvgRect selection={selection}
                                 key={selection.id}
+                                numRows={selection.numRows}
+                                numColumns={selection.numColumns}
                                 setCurrentlyEditing={(selectionId, whichHandle) => {
                                   this.changeActiveSelection(selectionId)
                                   this.setState({
@@ -132,13 +172,7 @@ class SelectTool extends React.Component {
                src={imageSrc}
                onDragStart={e => e.preventDefault()} />
         </div>
-        {selections.length && (
-          <select value={selections[selections.length - 1].id} onChange={this.handleSelectChange}>
-            {selections.map(selection => (
-              <option key={selection.id} value={selection.id}>{selection.id}</option>
-            ))}
-          </select>
-        )}
+        {settingsPanel}
       </div>
     )
   }

@@ -42,22 +42,20 @@ class SelectionSvgRect extends React.Component {
   }
 
   render() {
-    const { selection } = this.props
+    const { selection, numRows, numColumns } = this.props
     const {
       x: selectionX, y: selectionY, width: selectionWidth, height: selectionHeight
     } = selection
-    const rows = 20
-    const columns = 4
     const spacingX = 4
     const spacingY = 4
-    const gridWidth = (selectionWidth - (columns - 1) * spacingX) / columns
-    const gridHeight = (selectionHeight - (rows - 1) * spacingY) / rows
+    const gridWidth = (selectionWidth - (numColumns - 1) * spacingX) / numColumns
+    const gridHeight = (selectionHeight - (numRows - 1) * spacingY) / numRows
     const grids = []
     if (selectionWidth > 0 && selectionHeight > 0) {
-      for (let i = 0; i < rows; i += 1) {
-        for (let j = 0; j < columns; j += 1) {
+      for (let i = 0; i < numRows; i += 1) {
+        for (let j = 0; j < numColumns; j += 1) {
           grids.push({
-            index: i * rows + j,
+            index: i * numColumns + j,
             x: selectionX + j * (gridWidth + spacingX),
             y: selectionY + i * (gridHeight + spacingY),
             width: gridWidth,
@@ -106,6 +104,8 @@ SelectionSvgRect.propTypes = {
   selection: PropTypes.instanceOf(Selection).isRequired,
   setCurrentlyEditing: PropTypes.func.isRequired,
   unsetCurrentlyEditing: PropTypes.func.isRequired,
+  numRows: PropTypes.number.isRequired,
+  numColumns: PropTypes.number.isRequired,
 }
 
 export default SelectionSvgRect
