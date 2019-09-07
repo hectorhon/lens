@@ -42,14 +42,13 @@ class SelectionSvgRect extends React.Component {
   }
 
   render() {
-    const { selection, numRows, numColumns } = this.props
+    const { selection } = this.props
     const {
-      x: selectionX, y: selectionY, width: selectionWidth, height: selectionHeight
+      x: selectionX, y: selectionY, width: selectionWidth, height: selectionHeight,
+      numRows, numColumns, spacingX, spacingY,
     } = selection
-    const spacingX = 4
-    const spacingY = 4
-    const gridWidth = (selectionWidth - (numColumns - 1) * spacingX) / numColumns
-    const gridHeight = (selectionHeight - (numRows - 1) * spacingY) / numRows
+    const gridWidth = selection.getGridWidth()
+    const gridHeight = selection.getGridHeight()
     const grids = []
     if (selectionWidth > 0 && selectionHeight > 0) {
       for (let i = 0; i < numRows; i += 1) {
@@ -104,8 +103,6 @@ SelectionSvgRect.propTypes = {
   selection: PropTypes.instanceOf(Selection).isRequired,
   setCurrentlyEditing: PropTypes.func.isRequired,
   unsetCurrentlyEditing: PropTypes.func.isRequired,
-  numRows: PropTypes.number.isRequired,
-  numColumns: PropTypes.number.isRequired,
 }
 
 export default SelectionSvgRect

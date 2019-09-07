@@ -154,8 +154,6 @@ class SelectTool extends React.Component {
             {selections.map(selection => (
               <SelectionSvgRect selection={selection}
                                 key={selection.id}
-                                numRows={selection.numRows}
-                                numColumns={selection.numColumns}
                                 setCurrentlyEditing={(selectionId, whichHandle) => {
                                   this.changeActiveSelection(selectionId)
                                   this.setState({

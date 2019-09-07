@@ -27,6 +27,44 @@ class Selection {
     this.MAX_NUM_ROWS = 50
     this.MIN_NUM_COLUMNS = 3
     this.MAX_NUM_COLUMNS = 6
+    this.spacingX = 4
+    this.spacingY = 4
+    this.MIN_SPACING_X = 4
+    this.MIN_SPACING_Y = 4
+    this.MIN_GRID_WIDTH = 16
+    this.MIN_GRID_HEIGHT = 16
+  }
+
+  getGridWidth() {
+    return (this.width - (this.numColumns - 1) * this.spacingX) / this.numColumns
+  }
+
+  getGridHeight() {
+    return (this.height - (this.numRows - 1) * this.spacingY) / this.numRows
+  }
+
+  setSpacingX(n) {
+    if (n < this.MIN_SPACING_X) {
+      return
+    }
+    const originalSpacingX = this.spacingX
+    this.spacingX = n
+    const newGridWidth = this.getGridWidth()
+    if (newGridWidth < this.MIN_GRID_WIDTH) {
+      this.spacingX = originalSpacingX
+    }
+  }
+
+  setSpacingY(n) {
+    if (n < this.MIN_SPACING_Y) {
+      return
+    }
+    const originalSpacingY = this.spacingY
+    this.spacingY = n
+    const newGridHeight = this.getGridHeight()
+    if (newGridHeight < this.MIN_GRID_HEIGHT) {
+      this.spacingY = originalSpacingY
+    }
   }
 
   setNumRows(n) {

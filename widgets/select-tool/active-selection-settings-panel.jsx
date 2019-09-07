@@ -16,6 +16,20 @@ class ActiveSelectionSettingsPanel extends React.Component {
     })
   }
 
+  increaseSpacingX(delta) {
+    const { updateFunction } = this.props
+    updateFunction(selection => {
+      selection.setSpacingX(selection.spacingX + delta)
+    })
+  }
+
+  increaseSpacingY(delta) {
+    const { updateFunction } = this.props
+    updateFunction(selection => {
+      selection.setSpacingY(selection.spacingY + delta)
+    })
+  }
+
   render() {
     const { getFunction } = this.props
     const selection = getFunction()
@@ -44,6 +58,28 @@ class ActiveSelectionSettingsPanel extends React.Component {
           <button type="button"
                   onClick={() => this.increaseNumColumns(1)}
                   disabled={selection.numColumns >= selection.MAX_NUM_COLUMNS}>
+            +
+          </button>
+        </div>
+        <div>
+          <button type="button"
+                  onClick={() => this.increaseSpacingX(-1)}>
+            -
+          </button>
+          Adjust X spacing
+          <button type="button"
+                  onClick={() => this.increaseSpacingX(1)}>
+            +
+          </button>
+        </div>
+        <div>
+          <button type="button"
+                  onClick={() => this.increaseSpacingY(-1)}>
+            -
+          </button>
+          Adjust Y spacing
+          <button type="button"
+                  onClick={() => this.increaseSpacingY(1)}>
             +
           </button>
         </div>
