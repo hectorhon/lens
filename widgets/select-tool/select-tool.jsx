@@ -151,9 +151,10 @@ class SelectTool extends React.Component {
              style={{ position: 'relative', display: 'inline-block' }}>
           <svg style={{ height: '100%', width: '100%', position: 'absolute' }}>
             {candidateSelection && <SelectionCandidateSvgRect selection={candidateSelection} />}
-            {selections.map(selection => (
+            {selections.map((selection, index) => (
               <SelectionSvgRect selection={selection}
                                 key={selection.id}
+                                highlight={index === selections.length - 1}
                                 setCurrentlyEditing={(selectionId, whichHandle) => {
                                   this.changeActiveSelection(selectionId)
                                   this.setState({

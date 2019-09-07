@@ -23,7 +23,7 @@ class SelectionSvgRect extends React.Component {
   }
 
   renderFrame() {
-    const { selection } = this.props
+    const { selection, highlight } = this.props
     const {
       x: selectionX, y: selectionY, width: selectionWidth, height: selectionHeight
     } = selection
@@ -31,12 +31,22 @@ class SelectionSvgRect extends React.Component {
     const y = selectionHeight > 0 ? selectionY : selectionY + selectionHeight
     const width = Math.abs(selectionWidth)
     const height = Math.abs(selectionHeight)
+    function getStrokeColour() {
+      if (highlight) {
+        return 'red'
+      }
+      if (selectionHeight <= 0 || selectionWidth <= 0) {
+        return 'grey'
+      }
+      return 'black'
+    }
     return (
       <rect x={x}
             y={y}
             width={width}
             height={height}
-            stroke={selectionHeight > 0 && selectionWidth > 0 ? 'black' : 'grey'}
+            stroke={getStrokeColour()}
+            strokeWidth={highlight ? 3 : 1}
             fill="none" />
     )
   }
@@ -66,7 +76,6 @@ class SelectionSvgRect extends React.Component {
     const handleSize = 16
     return (
       <g>
-        {this.renderFrame()}
         {grids.map(grid => (
           <rect key={grid.index}
                 x={grid.x}
@@ -76,6 +85,7 @@ class SelectionSvgRect extends React.Component {
                 stroke="black"
                 fill="none" />
         ))}
+        {this.renderFrame()}
         <rect x={selectionX - handleSize / 2}
               y={selectionY - handleSize / 2}
               width={handleSize}
@@ -103,6 +113,11 @@ SelectionSvgRect.propTypes = {
   selection: PropTypes.instanceOf(Selection).isRequired,
   setCurrentlyEditing: PropTypes.func.isRequired,
   unsetCurrentlyEditing: PropTypes.func.isRequired,
+  highlight: PropTypes.bool,
+}
+
+SelectionSvgRect.defaultProps = {
+  highlight: false,
 }
 
 export default SelectionSvgRect
