@@ -13,6 +13,7 @@ class SelectTool extends React.Component {
       mouseDownPoint: null,
       mouseCurrentPoint: null,
       selections: [], // last array element is the active selection - svg z-index issue
+      selectionNameIncrementalCounter: 1,
       currentlyEditing: null, // { selectionId, whichHandle } when user "drags" the handle
     }
     this.handleMouseDown = this.handleMouseDown.bind(this)
@@ -77,14 +78,18 @@ class SelectTool extends React.Component {
   }
 
   handleMouseUp(e) {
-    const { mouseDownPoint } = this.state
+    const { mouseDownPoint, selectionNameIncrementalCounter } = this.state
     if (mouseDownPoint) {
       const { x: x1, y: y1 } = mouseDownPoint
       const { x: x2, y: y2 } = SelectTool.getCoordinates(e)
-      const selection = new Selection(x1, y1, x2, y2)
+      const name = `Selection ${selectionNameIncrementalCounter}`
+      const selection = new Selection(x1, y1, x2, y2, name)
       const minSize = 100
       if (selection.height > minSize && selection.width > minSize) {
         this.addSelection(selection)
+        this.setState({
+          selectionNameIncrementalCounter: selectionNameIncrementalCounter + 1,
+        })
       }
       this.setState({
         mouseDownPoint: null,
@@ -128,8 +133,12 @@ class SelectTool extends React.Component {
     if (selections.length) {
       const selectionSelector = (
         <select value={selections[selections.length - 1].id} onChange={this.handleSelectChange}>
-          {selections.map(selection => (
-            <option key={selection.id} value={selection.id}>{selection.id}</option>
+          {selections.slice().sort((selection1, selection2) => {
+            if (selection1.name < selection2.name) return -1
+            if (selection1.name > selection2.name) return 1
+            return 0
+          }).map(selection => (
+            <option key={selection.id} value={selection.id}>{selection.name}</option>
           ))}
         </select>
       )

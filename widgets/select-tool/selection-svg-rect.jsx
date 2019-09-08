@@ -25,7 +25,8 @@ class SelectionSvgRect extends React.Component {
   renderFrame() {
     const { selection, highlight } = this.props
     const {
-      x: selectionX, y: selectionY, width: selectionWidth, height: selectionHeight
+      x: selectionX, y: selectionY, width: selectionWidth, height: selectionHeight,
+      name
     } = selection
     const x = selectionWidth > 0 ? selectionX : selectionX + selectionWidth
     const y = selectionHeight > 0 ? selectionY : selectionY + selectionHeight
@@ -40,14 +41,31 @@ class SelectionSvgRect extends React.Component {
       }
       return 'black'
     }
+    function getLabelStyle() {
+      const style = {
+        '-moz-user-select': 'none', // disable text selection when dragging handles
+      }
+      if (highlight) {
+        style['font-weight'] = 'bold'
+      }
+      return style
+    }
     return (
-      <rect x={x}
-            y={y}
-            width={width}
-            height={height}
-            stroke={getStrokeColour()}
-            strokeWidth={highlight ? 3 : 1}
-            fill="none" />
+      <g>
+        <rect x={x}
+              y={y}
+              width={width}
+              height={height}
+              stroke={getStrokeColour()}
+              strokeWidth={highlight ? 3 : 1}
+              fill="none" />
+        <text x={x}
+              y={y + selectionHeight + 14}
+              pointerEvents="none"
+              style={getLabelStyle()}>
+          {name}
+        </text>
+      </g>
     )
   }
 
