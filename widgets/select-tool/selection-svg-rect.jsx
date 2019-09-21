@@ -43,10 +43,10 @@ class SelectionSvgRect extends React.Component {
     }
     function getLabelStyle() {
       const style = {
-        '-moz-user-select': 'none', // disable text selection when dragging handles
+        MozUserSelect: 'none', // disable text selection when dragging handles
       }
       if (highlight) {
-        style['font-weight'] = 'bold'
+        style.fontWeight = 'bold'
       }
       return style
     }
