@@ -23,7 +23,7 @@ class SelectionSvgRect extends React.Component {
   }
 
   renderFrame() {
-    const { selection, highlight } = this.props
+    const { selection, highlight, getSelectionRangeStart } = this.props
     const {
       x: selectionX, y: selectionY, width: selectionWidth, height: selectionHeight,
       name
@@ -50,6 +50,11 @@ class SelectionSvgRect extends React.Component {
       }
       return style
     }
+    function getRangeText() {
+      const start = getSelectionRangeStart(selection.id) // zero-based
+      const end = start + selection.numRows - 1 // zero-based
+      return `${start + 1}-${end + 1}`
+    }
     return (
       <g>
         <rect x={x}
@@ -60,10 +65,10 @@ class SelectionSvgRect extends React.Component {
               strokeWidth={highlight ? 3 : 1}
               fill="none" />
         <text x={x}
-              y={y + selectionHeight + 14}
+              y={y + selectionHeight + 20}
               pointerEvents="none"
               style={getLabelStyle()}>
-          {name}
+          {name} ({ getRangeText() })
         </text>
       </g>
     )
@@ -132,6 +137,7 @@ SelectionSvgRect.propTypes = {
   setCurrentlyEditing: PropTypes.func.isRequired,
   unsetCurrentlyEditing: PropTypes.func.isRequired,
   highlight: PropTypes.bool,
+  getSelectionRangeStart: PropTypes.func.isRequired,
 }
 
 SelectionSvgRect.defaultProps = {

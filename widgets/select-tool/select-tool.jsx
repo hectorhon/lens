@@ -13,6 +13,7 @@ class SelectTool extends React.Component {
       mouseDownPoint: null,
       mouseCurrentPoint: null,
       selections: [], // last array element is the active selection - svg z-index issue
+      selectionsInCreationOrder: [], // array of selections in insertion order
       selectionNameIncrementalCounter: 1,
       currentlyEditing: null, // { selectionId, whichHandle } when user "drags" the handle
     }
@@ -24,6 +25,7 @@ class SelectTool extends React.Component {
     this.handleSelectChange = this.handleSelectChange.bind(this)
     this.updateActiveSelection = this.updateActiveSelection.bind(this)
     this.getActiveSelection = this.getActiveSelection.bind(this)
+    this.getSelectionRangeStart = this.getSelectionRangeStart.bind(this)
   }
 
   static getCoordinates(e) {
@@ -37,6 +39,18 @@ class SelectTool extends React.Component {
     const { selections } = this.state
     const selection = selections[selections.length - 1]
     return selection
+  }
+
+  // Returns zero-based index
+  getSelectionRangeStart(selectionId) {
+    const { selectionsInCreationOrder } = this.state
+    const index = selectionsInCreationOrder
+      .findIndex(selection => selection.id === selectionId)
+    const total = selectionsInCreationOrder
+      .slice(0, index)
+      .map(selection => selection.numRows)
+      .reduce((sum, numRows) => sum + numRows, 0)
+    return total
   }
 
   // f takes a selection updates it in place
@@ -99,9 +113,10 @@ class SelectTool extends React.Component {
   }
 
   addSelection(selection) {
-    const { selections } = this.state
+    const { selections, selectionsInCreationOrder } = this.state
     this.setState({
-      selections: [...selections, selection]
+      selections: [...selections, selection],
+      selectionsInCreationOrder: [...selectionsInCreationOrder, selection],
     })
   }
 
@@ -173,7 +188,8 @@ class SelectTool extends React.Component {
                                 unsetCurrentlyEditing={() => {
                                   this.setState({ currentlyEditing: null })
                                   selections[selections.length - 1].ensurePositive()
-                                }} />
+                                }}
+                                getSelectionRangeStart={this.getSelectionRangeStart} />
             ))}
           </svg>
           <img alt="Viewer"
