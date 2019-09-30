@@ -1,24 +1,24 @@
-from django.http import HttpResponse
+from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.forms import ModelForm
 
-from .models import Template, Image
+from .models import Image
 
 
 def index(request):
-    templates = Template.objects.all()[:10]
-    output = ', '.join([str(q.id) for q in templates])
-    return HttpResponse(output)
+    return render(request, 'core/index.html')
 
 
 def image_list(request):
-    start = request.GET.get('skip', 0)
-    end = request.GET.get('limit', 10)
-    images = Image.objects.all()[start:end]
-    context = {
-        'images': images
-    }
-    return render(request, 'core/image_list.html', context)
+    page_number = int(request.GET.get('page', 1))
+    # limit = max(1, int(request.GET.get('limit', 10)))
+    limit = 10
+    images = Image.objects.all()
+    paginator = Paginator(images, limit)
+    image_list = paginator.get_page(page_number)
+    return render(request, 'core/image_list.html', {
+        'images': image_list,
+    })
 
 
 class ImageForm(ModelForm):
