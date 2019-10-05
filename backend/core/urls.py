@@ -16,6 +16,10 @@ urlpatterns = [
          views.image_upload_form,
          name='image_upload_form'),
 
+    path('images/api/delete',
+         views.image_api_delete,
+         name='image_api_delete'),
+
     path('albums',
          views.album_list,
          name='album_list'),

@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.core.files.images import ImageFile
@@ -33,6 +34,7 @@ def image_upload_form(request):
                 album_id_from_hidden_input = form.cleaned_data['hidden_album_id']
                 if album_id_from_hidden_input is not None:
                     album = Album.objects.get(pk=album_id_from_hidden_input)
+
             # https://docs.djangoproject.com/en/2.2/topics/http/file-uploads/#uploading-multiple-files
             # https://stackoverflow.com/questions/46318587/django-uploading-multiple-files-list-of-files-needed-in-cleaned-datafile
             for file in request.FILES.getlist('files'):
@@ -53,6 +55,14 @@ def image_upload_form(request):
             form = ImageUploadForm()
     return render(request, 'core/image_upload_form.djhtml', {
         'form': form
+    })
+
+
+def image_api_delete(request):
+    image_ids = request.POST.getlist('selectedImageIds[]')
+    deleteCount, _ = Image.objects.filter(pk__in=image_ids).delete()
+    return JsonResponse({
+        'deleteCount': deleteCount
     })
 
 
@@ -84,5 +94,7 @@ def album_view(request):
     album_id = request.GET.get('id')
     album = Album.objects.get(pk=album_id)
     return render(request, 'core/album_view.djhtml', {
-        'album': album
+        'title': album.name,
+        'subtitle': 'Album',
+        'album': album,
     })

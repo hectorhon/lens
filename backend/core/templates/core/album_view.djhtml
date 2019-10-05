@@ -1,18 +1,33 @@
 {% extends 'core/layout.djhtml' %}
 
+{% load static %}
+
 {% block content %}
 
-  <header>
-    <h1>{{ album.name }}</h1>
-    <p>Album</p>
-  </header>
+  <div class="row" id="images-toolbar" style="visibility: hidden;">
+    <div class="col-md-12">
+      <div class="float-right">
+        <form>
+          {% csrf_token %}
+          <div class="btn"><span id="selected-count-text">0 images selected.</span></div>
+          <button id="delete-selected-images-button" type="button" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
 
-  {% for image in album.image_set.all %}
-    <img src="{{ image.original.url }}"
-         width="300px"
-         height="300px"
-         style="object-fit: contain;" />
-  {% endfor %}
+  <div class="row my-3">
+    {% for image in album.image_set.all %}
+      <div class="col-md-3">
+        <img src="{{ image.original.url }}"
+             class="album-image"
+             data-image-id="{{ image.id }}"
+             width="300px"
+             height="300px"
+             style="object-fit: contain;" />
+      </div>
+    {% endfor %}
+  </div>
 
   <p>
     <a href="{% url 'image_upload_form' %}?album={{ album.id }}&amp;redirect={{ request.get_full_path|urlencode:"" }}">
@@ -20,4 +35,12 @@
     </a>
   </p>
 
+{% endblock %}
+
+{% block stylesheets %}
+  <link rel="stylesheet" href="{% static "core/album_view.css" %}">
+{% endblock %}
+
+{% block scripts %}
+  <script type="module" src="{% static "core/album_view.js" %}"></script>
 {% endblock %}
