@@ -1,0 +1,6 @@
+<div>
+  <a href="{% url 'index' %}">Home</a>
+</div>
+
+{% block content %}
+{% endblock %}

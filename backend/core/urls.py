@@ -4,13 +4,27 @@ from . import views
 
 urlpatterns = [
 
-    path('', views.index, name='index'),
+    path('',
+         views.index,
+         name='index'),
 
     path('images',
          views.image_list,
          name='image_list'),
 
     path('images/upload',
-         views.upload_image_form,
-         name='upload_image_form')
+         views.image_upload_form,
+         name='image_upload_form'),
+
+    path('albums',
+         views.album_list,
+         name='album_list'),
+
+    path('albums/create',
+         views.album_create_form,
+         name='album_create_form'),
+
+    path('albums/view',
+         views.album_view,
+         name='album_view'),
 ]

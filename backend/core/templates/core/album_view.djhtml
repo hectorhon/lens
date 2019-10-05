@@ -1,0 +1,23 @@
+{% extends 'core/layout.djhtml' %}
+
+{% block content %}
+
+  <header>
+    <h1>{{ album.name }}</h1>
+    <p>Album</p>
+  </header>
+
+  {% for image in album.image_set.all %}
+    <img src="{{ image.original.url }}"
+         width="300px"
+         height="300px"
+         style="object-fit: contain;" />
+  {% endfor %}
+
+  <p>
+    <a href="{% url 'image_upload_form' %}?album={{ album.id }}&amp;redirect={{ request.get_full_path|urlencode:"" }}">
+      Upload image
+    </a>
+  </p>
+
+{% endblock %}

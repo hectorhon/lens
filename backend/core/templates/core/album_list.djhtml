@@ -1,0 +1,40 @@
+{% extends 'core/layout.djhtml' %}
+
+{% block content %}
+
+  <p>
+    {% if albums.has_previous %}
+      <span>
+        <a href="?page={{ albums.previous_page_number }}">Previous</a>
+      </span>
+    {% endif %}
+
+    <span>Page {{ albums.number }}</span>
+
+    {% if albums.has_next %}
+      <span>
+        <a href="?page={{ albums.next_page_number }}">Next</a>
+      </span>
+    {% endif %}
+  </p>
+
+  <p>Items {{ albums.start_index }} - {{ albums.end_index }} of {{ albums.paginator.count }}</p>
+
+  <h1>Albums</h1>
+  <table>
+    <tr>
+      <th>Name</th>
+    </tr>
+    {% for album in albums %}
+      <tr>
+        <td>
+          <a href="{% url 'album_view' %}?id={{ album.id }}">
+            {{ album.name }}
+          </a>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  <p><a href="{% url 'album_create_form' %}">Create new album</a>
+
+{% endblock %}
