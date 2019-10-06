@@ -30,8 +30,8 @@
   {% endfor %}
 
   <p>
-    <a href="{% url 'image_upload_form' %}">Upload</a>
-    <a href="{% url 'index' %}">Home</a>
+    <a href="{% url 'core:image_upload_form' %}">Upload</a>
+    <a href="{% url 'core:index' %}">Home</a>
   </p>
 
 {% endblock %}

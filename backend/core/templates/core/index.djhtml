@@ -1,6 +1,6 @@
 {% extends 'core/layout.djhtml' %}
 
 {% block content %}
-<a href="{% url 'image_list' %}">Images</a>
-<a href="{% url 'album_list' %}">Albums</a>
+<a href="{% url 'core:image_list' %}">Images</a>
+<a href="{% url 'core:album_list' %}">Albums</a>
 {% endblock %}

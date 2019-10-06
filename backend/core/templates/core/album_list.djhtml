@@ -28,13 +28,13 @@
     {% for album in albums %}
       <tr>
         <td>
-          <a href="{% url 'album_view' %}?id={{ album.id }}">
+          <a href="{% url 'core:album_view' %}?id={{ album.id }}">
             {{ album.name }}
           </a>
         </td>
       </tr>
     {% endfor %}
   </table>
-  <p><a href="{% url 'album_create_form' %}">Create new album</a>
+  <p><a href="{% url 'core:album_create_form' %}">Create new album</a>
 
 {% endblock %}

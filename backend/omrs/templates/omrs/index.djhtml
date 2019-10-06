@@ -1,0 +1,5 @@
+{% extends 'core/layout.djhtml' %}
+
+{% block content %}
+  <p><a href="{% url 'omrs:template_list' %}">Templates</a></p>
+{% endblock %}

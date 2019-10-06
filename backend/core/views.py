@@ -23,7 +23,7 @@ def image_list(request):
 
 
 def image_upload_form(request):
-    redirect_url = request.GET.get('redirect', 'image_list')
+    redirect_url = request.GET.get('redirect', 'core:image_list')
     preset_album = request.GET.get('album')
     if request.method == 'POST':
         form = ImageUploadForm(request.POST, request.FILES)
@@ -82,7 +82,7 @@ def album_create_form(request):
         form = AlbumCreateForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('album_list')
+            return redirect('core:album_list')
     else:
         form = AlbumCreateForm()
     return render(request, 'core/album_create_form.djhtml', {
