@@ -8,7 +8,7 @@ from .forms import ImageUploadForm, AlbumCreateForm
 
 
 def index(request):
-    return render(request, 'core/index.djhtml')
+    return render(request, 'core/index.html')
 
 
 def image_list(request):
@@ -17,7 +17,7 @@ def image_list(request):
     images = Image.objects.all()
     paginator = Paginator(images, limit)
     image_list = paginator.get_page(page_number)
-    return render(request, 'core/image_list.djhtml', {
+    return render(request, 'core/image_list.html', {
         'images': image_list,
     })
 
@@ -53,7 +53,7 @@ def image_upload_form(request):
             form.fields['album'].disabled = True
         else:
             form = ImageUploadForm()
-    return render(request, 'core/image_upload_form.djhtml', {
+    return render(request, 'core/image_upload_form.html', {
         'form': form
     })
 
@@ -72,7 +72,7 @@ def album_list(request):
     albums = Album.objects.all()
     paginator = Paginator(albums, limit)
     album_list = paginator.get_page(page_number)
-    return render(request, 'core/album_list.djhtml', {
+    return render(request, 'core/album_list.html', {
         'albums': album_list,
     })
 
@@ -85,7 +85,7 @@ def album_create_form(request):
             return redirect('core:album_list')
     else:
         form = AlbumCreateForm()
-    return render(request, 'core/album_create_form.djhtml', {
+    return render(request, 'core/album_create_form.html', {
         'form': form
     })
 
@@ -93,7 +93,7 @@ def album_create_form(request):
 def album_view(request):
     album_id = request.GET.get('id')
     album = Album.objects.get(pk=album_id)
-    return render(request, 'core/album_view.djhtml', {
+    return render(request, 'core/album_view.html', {
         'title': album.name,
         'subtitle': 'Album',
         'album': album,

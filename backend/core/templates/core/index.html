@@ -1,0 +1,8 @@
+<!-- -*- engine: django -*- -->
+
+{% extends 'core/layout.html' %}
+
+{% block content %}
+  <a href="{% url 'core:image_list' %}">Images</a>
+  <a href="{% url 'core:album_list' %}">Albums</a>
+{% endblock %}

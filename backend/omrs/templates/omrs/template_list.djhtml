@@ -1,5 +1,0 @@
-{% extends 'core/layout.djhtml' %}
-
-{% block content %}
-  a
-{% endblock %}
