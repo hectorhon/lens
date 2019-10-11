@@ -11,6 +11,14 @@ urlpatterns = [
          name='index'),
 
     path('templates',
-         views.template_list,
+         views.TemplateListView.as_view(),
          name='template_list'),
+
+    path('templates/create',
+         views.TemplateCreateView.as_view(),
+         name='template_create_form'),
+
+    path('templates/view/<uuid:pk>',
+         views.TemplateDetailView.as_view(),
+         name='template_view'),
 ]

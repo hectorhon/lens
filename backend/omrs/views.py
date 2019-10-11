@@ -1,20 +1,29 @@
 from django.shortcuts import render
-from django.core.paginator import Paginator
+from django.views import generic
+from django.urls import reverse_lazy
 
 from .models import Template
 
 
 def index(request):
-    return render(request, 'omrs/index.djhtml')
+    return render(request, 'omrs/index.html')
 
 
-def template_list(request):
-    page_number = int(request.GET.get('page', 1))
-    limit = 10
-    images = Template.objects.all()
-    paginator = Paginator(images, limit)
-    template_list = paginator.get_page(page_number)
-    return render(request, 'omrs/template_list.djhtml', {
-        'title': 'Templates',
-        'templates': template_list,
-    })
+class TemplateListView(generic.ListView):
+    model = Template
+    paginate_by = 2
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Templates'
+        return context
+
+
+class TemplateCreateView(generic.CreateView):
+    model = Template
+    fields = ['name', 'base_image']
+    success_url = reverse_lazy('omrs:template_list')
+
+
+class TemplateDetailView(generic.DetailView):
+    model = Template
