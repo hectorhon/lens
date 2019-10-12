@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="{% static "bootstrap.css" %}">
+    <link rel="stylesheet" href="{% static "vendor/bootstrap.css" %}">
     {% block stylesheets %}
     {% endblock %}
     <title>{% if title %}{{ title }} - {% endif %}{% if subtitle %}{{ subtitle }} - {% endif %}Lens</title>
@@ -59,9 +59,9 @@
       {% endblock %}
     </div>
 
-    <script src="{% static "jquery-3.4.1.js" %}"></script>
-    <script src="{% static "popper.js" %}"></script>
-    <script src="{% static "bootstrap.js" %}"></script>
+    <script src="{% static "vendor/jquery-3.4.1.js" %}"></script>
+    <script src="{% static "vendor/popper.js" %}"></script>
+    <script src="{% static "vendor/bootstrap.js" %}"></script>
 
     {% block scripts %}
     {% endblock %}
