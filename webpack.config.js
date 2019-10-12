@@ -3,7 +3,8 @@ const path = require('path')
 module.exports = {
   entry: {
     'hello-world': './widgets/hello-world.jsx',
-    'select-tool': './widgets/select-tool/index.jsx'
+    'select-tool': './widgets/select-tool/index.jsx',
+    'image-gallery': './widgets/image-gallery/index.jsx',
   },
   output: {
     filename: '[name].js',
