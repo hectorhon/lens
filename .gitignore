@@ -62,4 +62,3 @@ typings/
 
 # webpack build output
 public/javascripts/dist/
-backend/backend/static/dist/

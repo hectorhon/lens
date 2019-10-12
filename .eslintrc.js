@@ -18,4 +18,11 @@ module.exports = {
     'semi': ['error', 'never'],
     'comma-dangle': 'off'
   },
+  settings: {
+    'import/resolver': {
+      webpack: {
+        'config-index': 1 // update if webpack.config.js changes. Currently points to django
+      }
+    }
+  }
 };

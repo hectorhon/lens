@@ -2,9 +2,16 @@
 
 {% extends 'core/layout.html' %}
 
+{% load static %}
+
 {% block content %}
 
   {{ object }}
   {{ object.name }}
+  <div id="xxx" />
 
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static "dist/xxx.js" %}"></script>
 {% endblock %}
