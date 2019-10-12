@@ -6,9 +6,14 @@
 
 {% block content %}
 
-  {{ object }}
-  {{ object.name }}
-  <div id="xxx" />
+  <div class="row">
+    <div class="col-md-12">
+      <p>Created on {{ template.created_on }}</p>
+      <p>Last updated on {{ template.updated_on }}</p>
+    </div>
+  </div>
+  <div class="row" id="xxx"
+       data-base-image="{{ template.base_image.original.url }}" />
 
 {% endblock %}
 

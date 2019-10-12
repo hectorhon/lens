@@ -9,6 +9,7 @@ class Template(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=200)
     created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
     base_image = models.ForeignKey(Image, on_delete=models.PROTECT)
 
     def get_absolute_url(self):

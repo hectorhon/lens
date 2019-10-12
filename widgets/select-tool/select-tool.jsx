@@ -100,8 +100,9 @@ class SelectTool extends React.Component {
       const { x: x2, y: y2 } = SelectTool.getCoordinates(e)
       const name = `Selection ${selectionNameIncrementalCounter}`
       const selection = new Selection(x1, y1, x2, y2, name)
-      const minSize = 100
-      if (selection.height > minSize && selection.width > minSize) {
+      const minHeight = 50
+      const minWidth = 50
+      if (selection.height > minHeight && selection.width > minWidth) {
         this.addSelection(selection)
         this.setState({
           selectionNameIncrementalCounter: selectionNameIncrementalCounter + 1,
@@ -185,37 +186,42 @@ class SelectTool extends React.Component {
     }
 
     return (
-      <div>
-        <div role="presentation"
-             onMouseDown={this.handleMouseDown}
-             onMouseMove={this.handleMouseMove}
-             onMouseUp={this.handleMouseUp}
-             style={{ position: 'relative', display: 'inline-block' }}>
-          <svg style={{ height: '100%', width: '100%', position: 'absolute' }}>
-            {candidateSelection && <SelectionCandidateSvgRect selection={candidateSelection} />}
-            {selections.map((selection, index) => (
-              <SelectionSvgRect selection={selection}
-                                key={selection.id}
-                                highlight={index === selections.length - 1}
-                                setCurrentlyEditing={(selectionId, whichHandle) => {
-                                  this.changeActiveSelection(selectionId)
-                                  this.setState({
-                                    currentlyEditing: { selectionId, whichHandle },
-                                  })
-                                }}
-                                unsetCurrentlyEditing={() => {
-                                  this.setState({ currentlyEditing: null })
-                                  selections[selections.length - 1].ensurePositive()
-                                }}
-                                getSelectionRangeStart={this.getSelectionRangeStart} />
-            ))}
-          </svg>
-          <img alt="Viewer"
-               src={imageSrc}
-               onDragStart={e => e.preventDefault()} />
+      <>
+        <div className="col-md-6">
+          <div role="presentation"
+               onMouseDown={this.handleMouseDown}
+               onMouseMove={this.handleMouseMove}
+               onMouseUp={this.handleMouseUp}
+               style={{ position: 'relative', display: 'inline-block', border: '1px solid black' }}>
+            <svg style={{ height: '100%', width: '100%', position: 'absolute' }}>
+              {candidateSelection && <SelectionCandidateSvgRect selection={candidateSelection} />}
+              {selections.map((selection, index) => (
+                <SelectionSvgRect selection={selection}
+                                  key={selection.id}
+                                  highlight={index === selections.length - 1}
+                                  setCurrentlyEditing={(selectionId, whichHandle) => {
+                                    this.changeActiveSelection(selectionId)
+                                    this.setState({
+                                      currentlyEditing: { selectionId, whichHandle },
+                                    })
+                                  }}
+                                  unsetCurrentlyEditing={() => {
+                                    this.setState({ currentlyEditing: null })
+                                    selections[selections.length - 1].ensurePositive()
+                                  }}
+                                  getSelectionRangeStart={this.getSelectionRangeStart} />
+              ))}
+            </svg>
+            <img alt="Viewer"
+                 src={imageSrc}
+                 width="100%"
+                 onDragStart={e => e.preventDefault()} />
+          </div>
         </div>
-        {settingsPanel}
-      </div>
+        <div className="col-md-6">
+          {settingsPanel}
+        </div>
+      </>
     )
   }
 }
