@@ -31,7 +31,7 @@ class ActiveSelectionSettingsPanel extends React.Component {
   }
 
   render() {
-    const { getFunction } = this.props
+    const { getFunction, deleteFunction } = this.props
     const selection = getFunction()
     return (
       <form>
@@ -83,6 +83,11 @@ class ActiveSelectionSettingsPanel extends React.Component {
             +
           </button>
         </div>
+        <div>
+          <button type="button" onClick={() => deleteFunction()}>
+            Delete this selection
+          </button>
+        </div>
       </form>
     )
   }
@@ -91,6 +96,7 @@ class ActiveSelectionSettingsPanel extends React.Component {
 ActiveSelectionSettingsPanel.propTypes = {
   getFunction: PropTypes.func.isRequired,
   updateFunction: PropTypes.func.isRequired,
+  deleteFunction: PropTypes.func.isRequired,
 }
 
 export default ActiveSelectionSettingsPanel

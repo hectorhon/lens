@@ -21,6 +21,8 @@ class SelectTool extends React.Component {
     this.handleMouseMove = this.handleMouseMove.bind(this)
     this.handleMouseUp = this.handleMouseUp.bind(this)
     this.addSelection = this.addSelection.bind(this)
+    this.deleteSelection = this.deleteSelection.bind(this)
+    this.deleteActiveSelection = this.deleteActiveSelection.bind(this)
     this.changeActiveSelection = this.changeActiveSelection.bind(this)
     this.handleSelectChange = this.handleSelectChange.bind(this)
     this.updateActiveSelection = this.updateActiveSelection.bind(this)
@@ -120,6 +122,21 @@ class SelectTool extends React.Component {
     })
   }
 
+  deleteSelection(selectionId) {
+    const { selections, selectionsInCreationOrder } = this.state
+    this.setState({
+      selections: selections.filter(s => s.id !== selectionId),
+      selectionsInCreationOrder: selectionsInCreationOrder.filter(
+        s => s.id !== selectionId
+      ),
+    })
+  }
+
+  deleteActiveSelection() {
+    const selection = this.getActiveSelection()
+    this.deleteSelection(selection.id)
+  }
+
   changeActiveSelection(selectionId) {
     const { selections } = this.state
     const front = selections.filter(s => s.id !== selectionId)
@@ -161,7 +178,8 @@ class SelectTool extends React.Component {
         <>
           {selectionSelector}
           <ActiveSelectionSettingsPanel updateFunction={this.updateActiveSelection}
-                                        getFunction={this.getActiveSelection} />
+                                        getFunction={this.getActiveSelection}
+                                        deleteFunction={this.deleteActiveSelection} />
         </>
       )
     }
