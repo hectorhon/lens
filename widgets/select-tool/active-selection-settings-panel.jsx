@@ -34,7 +34,7 @@ class ActiveSelectionSettingsPanel extends React.Component {
     const { getFunction, deleteFunction } = this.props
     const selection = getFunction()
     return (
-      <form>
+      <>
         <div>
           <button type="button"
                   onClick={() => this.increaseNumRows(-1)}
@@ -88,7 +88,7 @@ class ActiveSelectionSettingsPanel extends React.Component {
             Delete this selection
           </button>
         </div>
-      </form>
+      </>
     )
   }
 }

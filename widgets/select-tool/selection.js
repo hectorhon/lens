@@ -24,16 +24,8 @@ class Selection {
     this.height = Math.abs(y1 - y2)
     this.numRows = 20
     this.numColumns = 4
-    this.MIN_NUM_ROWS = 5
-    this.MAX_NUM_ROWS = 50
-    this.MIN_NUM_COLUMNS = 3
-    this.MAX_NUM_COLUMNS = 6
     this.spacingX = 4
     this.spacingY = 4
-    this.MIN_SPACING_X = 4
-    this.MIN_SPACING_Y = 4
-    this.MIN_GRID_WIDTH = 16
-    this.MIN_GRID_HEIGHT = 16
   }
 
   getGridWidth() {
@@ -102,5 +94,14 @@ class Selection {
     this.height = y - this.y
   }
 }
+
+Selection.prototype.MIN_NUM_ROWS = 5
+Selection.prototype.MAX_NUM_ROWS = 50
+Selection.prototype.MIN_NUM_COLUMNS = 3
+Selection.prototype.MAX_NUM_COLUMNS = 6
+Selection.prototype.MIN_SPACING_X = 4
+Selection.prototype.MIN_SPACING_Y = 4
+Selection.prototype.MIN_GRID_WIDTH = 16
+Selection.prototype.MIN_GRID_HEIGHT = 16
 
 export default Selection

@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views import generic
 from django.urls import reverse_lazy
+from django.http import HttpResponse
 
 from .models import Template
 
@@ -27,9 +28,15 @@ class TemplateCreateView(generic.CreateView):
 
 class TemplateDetailView(generic.DetailView):
     model = Template
+    fields = ['name', 'base_image']
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = self.object.name
         context['subtitle'] = 'Template'
         return context
+
+
+def updateTemplateSelections(request):
+    print(request.body)
+    return HttpResponse()

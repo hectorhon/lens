@@ -19,6 +19,7 @@ class Template(models.Model):
 class Selection(models.Model):
     id = models.UUIDField(primary_key=True, editable=False)
     template = models.ForeignKey(Template, on_delete=models.CASCADE)
+    order = models.IntegerField(default=1)
     name = models.CharField(max_length=200)
     x = models.IntegerField(default=0)
     y = models.IntegerField(default=0)
@@ -28,3 +29,8 @@ class Selection(models.Model):
     num_columns = models.IntegerField(default=0)
     spacing_x = models.IntegerField(default=0)
     spacing_y = models.IntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['template', 'order'], name='unique_ordering')
+        ]

@@ -20,6 +20,7 @@ class SelectTool extends React.Component {
     this.handleMouseDown = this.handleMouseDown.bind(this)
     this.handleMouseMove = this.handleMouseMove.bind(this)
     this.handleMouseUp = this.handleMouseUp.bind(this)
+    this.handleSave = this.handleSave.bind(this)
     this.addSelection = this.addSelection.bind(this)
     this.deleteSelection = this.deleteSelection.bind(this)
     this.deleteActiveSelection = this.deleteActiveSelection.bind(this)
@@ -113,6 +114,12 @@ class SelectTool extends React.Component {
         mouseCurrentPoint: null,
       })
     }
+  }
+
+  handleSave() {
+    const { save } = this.props
+    const { selectionsInCreationOrder } = this.state
+    save({ selectionsInCreationOrder })
   }
 
   addSelection(selection) {
@@ -219,7 +226,21 @@ class SelectTool extends React.Component {
           </div>
         </div>
         <div className="col-md-6">
-          {settingsPanel}
+          <form>
+            <div className="d-flex align-items-center">
+              <div className="flex-grow-1">
+                <span>Click and drag on the image to mark important regions.</span>
+              </div>
+              <div>
+                <button type="button"
+                        className="btn btn-primary"
+                        onClick={this.handleSave}>
+                  Save
+                </button>
+              </div>
+            </div>
+            {settingsPanel}
+          </form>
         </div>
       </>
     )
@@ -227,7 +248,8 @@ class SelectTool extends React.Component {
 }
 
 SelectTool.propTypes = {
-  imageSrc: PropTypes.string.isRequired
+  imageSrc: PropTypes.string.isRequired,
+  save: PropTypes.func.isRequired, // the save function takes a JSON object representing the state
 }
 
 export default SelectTool

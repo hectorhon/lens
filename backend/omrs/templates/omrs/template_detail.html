@@ -8,12 +8,17 @@
 
   <div class="row">
     <div class="col-md-12">
-      <p>Created on {{ template.created_on }}</p>
-      <p>Last updated on {{ template.updated_on }}</p>
+      <ul class="list-inline">
+        <li class="list-inline-item">Created {{ template.created_on }}</li>
+        <li class="list-inline-item">Updated {{ template.updated_on }}</li>
+      </ul>
     </div>
   </div>
-  <div class="row" id="xxx"
-       data-base-image="{{ template.base_image.original.url }}" />
+  <div class="row"
+       id="xxx"
+       data-template-id="{{ template.id }}"
+       data-base-image="{{ template.base_image.original.url }}">
+  </div>
 
 {% endblock %}
 
