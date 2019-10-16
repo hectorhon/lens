@@ -3,7 +3,12 @@ from django.views import generic
 from django.urls import reverse_lazy
 from django.http import HttpResponse
 
-from .models import Template
+import json
+import logging
+
+from .models import Template, Selection
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -38,5 +43,23 @@ class TemplateDetailView(generic.DetailView):
 
 
 def updateTemplateSelections(request):
-    print(request.body)
+    parsed_json = json.loads(request.body)
+    logger.debug(json.dumps(parsed_json, indent=4))
+    template_id = parsed_json['templateId']
+    selections = parsed_json['selectionsInCreationOrder']
+    Selection.objects.filter(template_id=template_id).delete()
+    Selection.objects.bulk_create([Selection(
+        id=selection['id'],
+        template_id=template_id,
+        order=index,
+        name=selection['name'],
+        x=selection['x'],
+        y=selection['y'],
+        width=selection['width'],
+        height=selection['height'],
+        num_rows=selection['numRows'],
+        num_columns=selection['numColumns'],
+        spacing_x=selection['spacingX'],
+        spacing_y=selection['spacingY'],
+    ) for index, selection in enumerate(selections, start=1)])
     return HttpResponse()
