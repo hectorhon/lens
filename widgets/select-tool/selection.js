@@ -11,21 +11,35 @@ function ensureBetween(min, n, max) {
 }
 
 class Selection {
-  constructor(x1, y1, x2, y2, name) {
-    this.id = uuid.v4()
-    this.name = name
-    // this.x1 = x1
-    // this.y1 = y1
-    // this.x2 = x2
-    // this.y2 = y2
-    this.x = Math.min(x1, x2)
-    this.y = Math.min(y1, y2)
-    this.width = Math.abs(x1 - x2)
-    this.height = Math.abs(y1 - y2)
-    this.numRows = 20
-    this.numColumns = 4
-    this.spacingX = 4
-    this.spacingY = 4
+  static create(x1, y1, x2, y2, name) {
+    const selection = new Selection()
+    selection.id = uuid.v4()
+    selection.name = name
+    selection.x = Math.min(x1, x2)
+    selection.y = Math.min(y1, y2)
+    selection.width = Math.abs(x1 - x2)
+    selection.height = Math.abs(y1 - y2)
+    selection.numRows = 20
+    selection.numColumns = 4
+    selection.spacingX = 4
+    selection.spacingY = 4
+    return selection
+  }
+
+  static fromJson(object) {
+    const selection = new Selection()
+    selection.id = object.id
+    selection.order = object.order
+    selection.name = object.name
+    selection.x = object.x
+    selection.y = object.y
+    selection.width = object.width
+    selection.height = object.height
+    selection.numRows = object.numRows
+    selection.numColumns = object.numColumns
+    selection.spacingX = object.spacingX
+    selection.spacingY = object.spacingY
+    return selection
   }
 
   getGridWidth() {

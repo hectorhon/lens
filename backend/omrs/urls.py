@@ -19,10 +19,6 @@ urlpatterns = [
          name='template_create_form'),
 
     path('templates/view/<uuid:pk>',
-         views.TemplateDetailView.as_view(),
+         views.TemplateSelectionsView.as_view(),
          name='template_view'),
-
-    path('templates/api/update_template_selections/',
-         views.updateTemplateSelections,
-         name='template_api_update_template_selections'),
 ]

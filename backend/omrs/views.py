@@ -1,12 +1,12 @@
 from django.shortcuts import render
 from django.views import generic
 from django.urls import reverse_lazy
-from django.http import HttpResponse
 
 import json
 import logging
 
 from .models import Template, Selection
+from .forms import TemplateSelectionsForm
 
 logger = logging.getLogger(__name__)
 
@@ -31,35 +31,41 @@ class TemplateCreateView(generic.CreateView):
     success_url = reverse_lazy('omrs:template_list')
 
 
-class TemplateDetailView(generic.DetailView):
-    model = Template
-    fields = ['name', 'base_image']
+class TemplateSelectionsView(generic.FormView):
+    """View and update the selections for this template."""
+
+    template_name = 'omrs/template_selections.html'
+    form_class = TemplateSelectionsForm
+
+    def get_initial(self):
+        # get_initial is also being called during POST. Huh.
+        if (self.request.method == 'POST'):
+            return {}
+
+        template_id = self.kwargs['pk']
+        selections = Selection.objects.filter(template_id=template_id)
+        return {
+            'selections': Template.selections_to_json(selections)
+        }
+
+    def get_success_url(self):
+        return reverse_lazy('omrs:template_view',
+                            kwargs={'pk': self.kwargs['pk']})
+
+    def form_valid(self, form):
+        template_id = self.kwargs['pk']
+        json_string = form.cleaned_data['selections']
+        logger.debug(json.dumps(json.loads(json_string), indent=4))
+        selections = Template.parse_selections(json_string, template_id)
+        Selection.objects.filter(template_id=template_id).delete()
+        Selection.objects.bulk_create(selections)
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = self.object.name
+        template_id = self.kwargs['pk']
+        template = Template.objects.get(pk=template_id)
+        context['template'] = template
+        context['title'] = template.name
         context['subtitle'] = 'Template'
         return context
-
-
-def updateTemplateSelections(request):
-    parsed_json = json.loads(request.body)
-    logger.debug(json.dumps(parsed_json, indent=4))
-    template_id = parsed_json['templateId']
-    selections = parsed_json['selectionsInCreationOrder']
-    Selection.objects.filter(template_id=template_id).delete()
-    Selection.objects.bulk_create([Selection(
-        id=selection['id'],
-        template_id=template_id,
-        order=index,
-        name=selection['name'],
-        x=selection['x'],
-        y=selection['y'],
-        width=selection['width'],
-        height=selection['height'],
-        num_rows=selection['numRows'],
-        num_columns=selection['numColumns'],
-        spacing_x=selection['spacingX'],
-        spacing_y=selection['spacingY'],
-    ) for index, selection in enumerate(selections, start=1)])
-    return HttpResponse()

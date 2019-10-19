@@ -17,6 +17,12 @@ class SelectTool extends React.Component {
       selectionNameIncrementalCounter: 1,
       currentlyEditing: null, // { selectionId, whichHandle } when user "drags" the handle
     }
+    if (props.initialSelections) {
+      const selections = props.initialSelections.map(object => Selection.fromJson(object))
+      this.state.selections = selections
+      this.state.selectionsInCreationOrder = selections.slice()
+      this.state.selectionNameIncrementalCounter = 1 + props.initialSelections.length
+    }
     this.handleMouseDown = this.handleMouseDown.bind(this)
     this.handleMouseMove = this.handleMouseMove.bind(this)
     this.handleMouseUp = this.handleMouseUp.bind(this)
@@ -94,20 +100,37 @@ class SelectTool extends React.Component {
     }
   }
 
+  isNameAlreadyTaken(name) {
+    const { selections } = this.state
+    return selections.map(selection => selection.name).includes(name)
+  }
+
+  generateNextName() {
+    let { selectionNameIncrementalCounter } = this.state
+    let name = `Selection ${selectionNameIncrementalCounter}`
+    while (this.isNameAlreadyTaken(name)) {
+      selectionNameIncrementalCounter += 1
+      name = `Selection ${selectionNameIncrementalCounter}`
+    }
+    this.setState({
+      selectionNameIncrementalCounter: selectionNameIncrementalCounter + 1,
+    })
+    return name
+  }
+
   handleMouseUp(e) {
     const { mouseDownPoint, selectionNameIncrementalCounter } = this.state
     if (mouseDownPoint) {
       const { x: x1, y: y1 } = mouseDownPoint
       const { x: x2, y: y2 } = SelectTool.getCoordinates(e)
-      const name = `Selection ${selectionNameIncrementalCounter}`
-      const selection = new Selection(x1, y1, x2, y2, name)
+      const selection = Selection.create(x1, y1, x2, y2, this.generateNextName())
       const minHeight = 50
       const minWidth = 50
       if (selection.height > minHeight && selection.width > minWidth) {
         this.addSelection(selection)
-        this.setState({
-          selectionNameIncrementalCounter: selectionNameIncrementalCounter + 1,
-        })
+      } else {
+        // revert the change from this.getNextName()
+        this.setState({ selectionNameIncrementalCounter })
       }
       this.setState({
         mouseDownPoint: null,
@@ -119,7 +142,7 @@ class SelectTool extends React.Component {
   handleSave() {
     const { save } = this.props
     const { selectionsInCreationOrder } = this.state
-    save({ selectionsInCreationOrder })
+    save(selectionsInCreationOrder)
   }
 
   addSelection(selection) {
@@ -166,7 +189,7 @@ class SelectTool extends React.Component {
     if (mouseDownPoint && mouseCurrentPoint) {
       const { x: x1, y: y1 } = mouseDownPoint
       const { x: x2, y: y2 } = mouseCurrentPoint
-      candidateSelection = new Selection(x1, y1, x2, y2)
+      candidateSelection = Selection.create(x1, y1, x2, y2)
     }
 
     let settingsPanel
@@ -250,6 +273,23 @@ class SelectTool extends React.Component {
 SelectTool.propTypes = {
   imageSrc: PropTypes.string.isRequired,
   save: PropTypes.func.isRequired, // the save function takes a JSON object representing the state
+  initialSelections: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string,
+    order: PropTypes.number,
+    name: PropTypes.string,
+    x: PropTypes.number,
+    y: PropTypes.number,
+    width: PropTypes.number,
+    height: PropTypes.number,
+    numRows: PropTypes.number,
+    numColumns: PropTypes.number,
+    spacingX: PropTypes.number,
+    spacingY: PropTypes.number,
+  })),
+}
+
+SelectTool.defaultProps = {
+  initialSelections: []
 }
 
 export default SelectTool

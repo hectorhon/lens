@@ -2,6 +2,8 @@ from django.db import models
 from django.urls import reverse
 from uuid import uuid4
 
+import json
+
 from core.models import Image
 
 
@@ -14,6 +16,40 @@ class Template(models.Model):
 
     def get_absolute_url(self):
         return reverse('omrs:template_view', args=(self.id,))
+
+    def parse_selections(json_string, template_id):
+        """Convert selections from front end json model to Django model."""
+        selections = json.loads(json_string)
+        return [Selection(
+            id=selection['id'],
+            template_id=template_id,
+            order=index,
+            name=selection['name'],
+            x=selection['x'],
+            y=selection['y'],
+            width=selection['width'],
+            height=selection['height'],
+            num_rows=selection['numRows'],
+            num_columns=selection['numColumns'],
+            spacing_x=selection['spacingX'],
+            spacing_y=selection['spacingY'],
+        ) for index, selection in enumerate(selections, start=1)]
+
+    def selections_to_json(selections):
+        """Convert selections from Django model to front end json model."""
+        return json.dumps([{
+            'id': str(selection.id),
+            'order': index,
+            'name': selection.name,
+            'x': selection.x,
+            'y': selection.y,
+            'width': selection.width,
+            'height': selection.height,
+            'numRows': selection.num_rows,
+            'numColumns': selection.num_columns,
+            'spacingX': selection.spacing_x,
+            'spacingY': selection.spacing_y,
+        } for index, selection in enumerate(selections, start=1)])
 
 
 class Selection(models.Model):

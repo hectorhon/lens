@@ -1,0 +1,31 @@
+<!-- -*- engine: django -*- -->
+
+{% extends 'core/layout.html' %}
+
+{% load static %}
+
+{% block content %}
+
+  <form method="post" id="template-selections-form">
+    {% csrf_token %}
+    {{ form }}
+  </form>
+
+  <div class="row">
+    <div class="col-md-12">
+      <ul class="list-inline">
+        <li class="list-inline-item">Created {{ template.created_on }}</li>
+        <li class="list-inline-item">Updated {{ template.updated_on }}</li>
+      </ul>
+    </div>
+  </div>
+  <div class="row"
+       id="xxx"
+       data-base-image="{{ template.base_image.original.url }}">
+  </div>
+
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static "dist/xxx.js" %}"></script>
+{% endblock %}
