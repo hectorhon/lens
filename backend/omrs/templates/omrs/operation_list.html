@@ -1,0 +1,51 @@
+<!-- -*- engine: django -*- -->
+
+{% extends 'core/layout.html' %}
+
+{% block content %}
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Created on</th>
+        <th>Album</th>
+        <th>Template</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for operation in operation_list %}
+        <tr>
+          <td><a href="{{ operation.get_absolute_url }}">{{ operation.created_on }}</a></td>
+          <td><a href="{% url 'core:album_view' %}?id={{ operation.album.id }}">{{ operation.album.name }}</a></td>
+          <td><a href="{% url 'omrs:template_view' operation.template.id %}">{{ operation.template.name }}</a></td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="3">No operations found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+
+  <p><a href="{% url 'omrs:operation_create_form' %}">Create</a></p>
+
+  <div class="pagination">
+    <span class="step-links">
+      {% if page_obj.has_previous %}
+        <a href="?page=1">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+      {% endif %}
+
+      <span class="current">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+      </span>
+
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+      {% endif %}
+    </span>
+  </div>
+
+{% endblock %}

@@ -21,4 +21,16 @@ urlpatterns = [
     path('templates/view/<uuid:pk>',
          views.TemplateSelectionsView.as_view(),
          name='template_view'),
+
+    path('operations',
+         views.OperationListView.as_view(),
+         name='operation_list'),
+
+    path('operations/create',
+         views.OperationCreateView.as_view(),
+         name='operation_create_form'),
+
+    path('operations/view/<uuid:pk>',
+         views.OperationDetailView.as_view(),
+         name='operation_view'),
 ]

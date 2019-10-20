@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import json
 
-from core.models import Image
+from core.models import Image, Album
 
 
 class Template(models.Model):
@@ -13,6 +13,9 @@ class Template(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
     base_image = models.ForeignKey(Image, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return '%s (Last updated %s)' % (self.name, self.updated_on.strftime('%-d %b %Y'))
 
     def get_absolute_url(self):
         return reverse('omrs:template_view', args=(self.id,))
@@ -70,3 +73,13 @@ class Selection(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['template', 'order'], name='unique_ordering')
         ]
+
+
+class Operation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    created_on = models.DateTimeField(auto_now_add=True)
+    template = models.ForeignKey(Template, on_delete=models.PROTECT)
+    album = models.ForeignKey(Album, on_delete=models.PROTECT)
+
+    def get_absolute_url(self):
+        return reverse('omrs:operation_view', args=(self.id,))

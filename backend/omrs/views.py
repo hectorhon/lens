@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 import json
 import logging
 
-from .models import Template, Selection
+from .models import Template, Selection, Operation
 from .forms import TemplateSelectionsForm
 
 logger = logging.getLogger(__name__)
@@ -68,4 +68,30 @@ class TemplateSelectionsView(generic.FormView):
         context['template'] = template
         context['title'] = template.name
         context['subtitle'] = 'Template'
+        return context
+
+
+class OperationListView(generic.ListView):
+    queryset = Operation.objects.order_by('-created_on').all()
+    paginate_by = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Operations'
+        return context
+
+
+class OperationCreateView(generic.CreateView):
+    model = Operation
+    fields = ['template', 'album']
+    success_url = reverse_lazy('omrs:operation_list')
+
+
+class OperationDetailView(generic.DetailView):
+    model = Operation
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = ''
+        context['subtitle'] = 'Operation'
         return context

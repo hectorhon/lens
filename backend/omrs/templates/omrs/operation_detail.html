@@ -1,0 +1,17 @@
+<!-- -*- engine: django -*- -->
+
+{% extends 'core/layout.html' %}
+
+{% load static %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col-md-12">
+      <ul>
+        <li>Created {{ operation.created_on }}</li>
+      </ul>
+    </div>
+  </div>
+
+{% endblock %}
