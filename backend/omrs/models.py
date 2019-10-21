@@ -42,7 +42,6 @@ class Template(models.Model):
         """Convert selections from Django model to front end json model."""
         return json.dumps([{
             'id': str(selection.id),
-            'order': index,
             'name': selection.name,
             'x': selection.x,
             'y': selection.y,
@@ -52,7 +51,7 @@ class Template(models.Model):
             'numColumns': selection.num_columns,
             'spacingX': selection.spacing_x,
             'spacingY': selection.spacing_y,
-        } for index, selection in enumerate(selections, start=1)])
+        } for selection in selections.order_by('order')])
 
 
 class Selection(models.Model):

@@ -29,7 +29,6 @@ class Selection {
   static fromJson(object) {
     const selection = new Selection()
     selection.id = object.id
-    selection.order = object.order
     selection.name = object.name
     selection.x = object.x
     selection.y = object.y
