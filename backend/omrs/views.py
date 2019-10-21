@@ -4,6 +4,9 @@ from django.urls import reverse_lazy
 
 import json
 import logging
+import io
+import zipfile
+import os
 
 from .models import Template, Selection, Operation
 from .forms import TemplateSelectionsForm
@@ -85,6 +88,32 @@ class OperationCreateView(generic.CreateView):
     model = Operation
     fields = ['template', 'album']
     success_url = reverse_lazy('omrs:operation_list')
+
+    def form_valid(self, form):
+        template = form.cleaned_data['template']
+        selections = template.selection_set.order_by('order').all()
+        album = form.cleaned_data['album']
+        images = album.image_set.all()  # TODO: need ordering
+        serialized_selections = json.dumps([{
+            'x': selection.x,
+            'y': selection.y,
+            'width': selection.width,
+            'height': selection.height,
+            'numRows': selection.num_rows,
+            'numColumns': selection.num_columns,
+            'spacingX': selection.spacing_x,
+            'spacingY': selection.spacing_y,
+        } for selection in selections], indent=4)
+        buffer = io.BytesIO()
+        zip = zipfile.ZipFile(buffer, mode='w')
+        zip.writestr('selections.json', serialized_selections)
+        for index, image in enumerate(images, start=1):
+            zip.writestr(os.path.basename(image.original.file.name),
+                         image.original.file.read())
+            zip.close()
+        with open('test.zip', 'wb') as f:  # TODO: find a location
+            f.write(buffer.getvalue())
+        return super().form_valid(form)
 
 
 class OperationDetailView(generic.DetailView):
