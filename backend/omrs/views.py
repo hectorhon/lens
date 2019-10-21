@@ -75,7 +75,9 @@ class TemplateSelectionsView(generic.FormView):
 
 
 class OperationListView(generic.ListView):
-    queryset = Operation.objects.order_by('-created_on').all()
+    queryset = Operation.objects.order_by('-created_on') \
+                                .select_related('album') \
+                                .select_related('template')
     paginate_by = 10
 
     def get_context_data(self, **kwargs):
@@ -91,7 +93,7 @@ class OperationCreateView(generic.CreateView):
 
     def form_valid(self, form):
         template = form.cleaned_data['template']
-        selections = template.selection_set.order_by('order').all()
+        selections = template.selection_set.order_by('order')
         album = form.cleaned_data['album']
         images = album.image_set.all()  # TODO: need ordering
         serialized_selections = json.dumps([{
