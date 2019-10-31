@@ -22,6 +22,10 @@ router.get('/image-gallery', (req, res) => {
   res.render('image-gallery')
 })
 
+router.get('/table', (req, res) => {
+  res.render('table')
+})
+
 router.get('/api/image-list', (req, res) => {
   const allImageIds = [
     'rose.jpeg',
