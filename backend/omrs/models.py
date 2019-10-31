@@ -55,6 +55,7 @@ class Template(models.Model):
 
 
 class Selection(models.Model):
+    """All coordinates are 1:1 to the base_image in template."""
     id = models.UUIDField(primary_key=True, editable=False)
     template = models.ForeignKey(Template, on_delete=models.CASCADE)
     order = models.IntegerField(default=1)

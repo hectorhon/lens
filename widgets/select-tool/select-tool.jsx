@@ -16,6 +16,10 @@ class SelectTool extends React.Component {
       selectionsInCreationOrder: [], // array of selections in insertion order
       selectionNameIncrementalCounter: 1,
       currentlyEditing: null, // { selectionId, whichHandle } when user "drags" the handle
+      originalImageWidth: undefined, // value will be available after img onload event
+      originalImageHeight: undefined, // value will be available after img onload event
+      displayedImageWidth: undefined, // value will be available after img onload event
+      // displayedImageHeight: undefined, // value will be available after img onload event
     }
     if (props.initialSelections) {
       const selections = props.initialSelections.map(object => Selection.fromJson(object))
@@ -23,6 +27,10 @@ class SelectTool extends React.Component {
       this.state.selectionsInCreationOrder = selections.slice()
       this.state.selectionNameIncrementalCounter = 1 + props.initialSelections.length
     }
+    this.imageRef = React.createRef()
+    this.getCoordinates = this.getCoordinates.bind(this)
+    this.getActiveSelection = this.getActiveSelection.bind(this)
+    this.getSelectionRangeStart = this.getSelectionRangeStart.bind(this)
     this.handleMouseDown = this.handleMouseDown.bind(this)
     this.handleMouseMove = this.handleMouseMove.bind(this)
     this.handleMouseUp = this.handleMouseUp.bind(this)
@@ -33,15 +41,24 @@ class SelectTool extends React.Component {
     this.changeActiveSelection = this.changeActiveSelection.bind(this)
     this.handleSelectChange = this.handleSelectChange.bind(this)
     this.updateActiveSelection = this.updateActiveSelection.bind(this)
-    this.getActiveSelection = this.getActiveSelection.bind(this)
-    this.getSelectionRangeStart = this.getSelectionRangeStart.bind(this)
+    this.handleWindowResize = this.handleWindowResize.bind(this)
   }
 
-  static getCoordinates(e) {
+  componentDidMount() {
+    window.addEventListener('resize', this.handleWindowResize)
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.handleWindowResize)
+  }
+
+  getCoordinates(e) {
     const { left, top } = e.currentTarget.getBoundingClientRect()
     const x = e.clientX - left
     const y = e.clientY - top
-    return { x, y }
+    const { originalImageWidth, displayedImageWidth } = this.state
+    const scaling = originalImageWidth / displayedImageWidth
+    return { x: x * scaling, y: y * scaling }
   }
 
   getActiveSelection() {
@@ -62,18 +79,8 @@ class SelectTool extends React.Component {
     return total
   }
 
-  // f takes a selection updates it in place
-  updateActiveSelection(f) {
-    const { selections } = this.state
-    const selection = this.getActiveSelection()
-    f(selection)
-    this.setState({
-      selections: selections.slice()
-    })
-  }
-
   handleMouseDown(e) {
-    const { x, y } = SelectTool.getCoordinates(e)
+    const { x, y } = this.getCoordinates(e)
     this.setState({
       mouseDownPoint: { x, y },
       mouseCurrentPoint: { x, y }
@@ -82,7 +89,7 @@ class SelectTool extends React.Component {
 
   handleMouseMove(e) {
     const { currentlyEditing, mouseDownPoint, selections } = this.state
-    const { x, y } = SelectTool.getCoordinates(e)
+    const { x, y } = this.getCoordinates(e)
     if (currentlyEditing) {
       const selection = selections[selections.length - 1]
       if (currentlyEditing.whichHandle === 'upperleft') {
@@ -122,7 +129,7 @@ class SelectTool extends React.Component {
     const { mouseDownPoint, selectionNameIncrementalCounter } = this.state
     if (mouseDownPoint) {
       const { x: x1, y: y1 } = mouseDownPoint
-      const { x: x2, y: y2 } = SelectTool.getCoordinates(e)
+      const { x: x2, y: y2 } = this.getCoordinates(e)
       const selection = Selection.create(x1, y1, x2, y2, this.generateNextName())
       const minHeight = 50
       const minWidth = 50
@@ -182,9 +189,28 @@ class SelectTool extends React.Component {
     this.changeActiveSelection(selectionId)
   }
 
+  // f takes a selection updates it in place
+  updateActiveSelection(f) {
+    const { selections } = this.state
+    const selection = this.getActiveSelection()
+    f(selection)
+    this.setState({
+      selections: selections.slice()
+    })
+  }
+
+  handleWindowResize() {
+    const img = this.imageRef.current
+    this.setState({
+      displayedImageWidth: img.clientWidth
+    })
+  }
+
   render() {
     const { imageSrc } = this.props
-    const { mouseDownPoint, mouseCurrentPoint, selections } = this.state
+    const {
+      mouseDownPoint, mouseCurrentPoint, selections, originalImageWidth, originalImageHeight
+    } = this.state
     let candidateSelection
     if (mouseDownPoint && mouseCurrentPoint) {
       const { x: x1, y: y1 } = mouseDownPoint
@@ -223,28 +249,47 @@ class SelectTool extends React.Component {
                onMouseMove={this.handleMouseMove}
                onMouseUp={this.handleMouseUp}
                style={{ position: 'relative', display: 'inline-block', border: '1px solid black' }}>
-            <svg style={{ height: '100%', width: '100%', position: 'absolute' }}>
-              {candidateSelection && <SelectionCandidateSvgRect selection={candidateSelection} />}
-              {selections.map((selection, index) => (
-                <SelectionSvgRect selection={selection}
-                                  key={selection.id}
-                                  highlight={index === selections.length - 1}
-                                  setCurrentlyEditing={(selectionId, whichHandle) => {
-                                    this.changeActiveSelection(selectionId)
-                                    this.setState({
-                                      currentlyEditing: { selectionId, whichHandle },
-                                    })
-                                  }}
-                                  unsetCurrentlyEditing={() => {
-                                    this.setState({ currentlyEditing: null })
-                                    selections[selections.length - 1].ensurePositive()
-                                  }}
-                                  getSelectionRangeStart={this.getSelectionRangeStart} />
-              ))}
-            </svg>
+
+            { originalImageWidth && originalImageHeight
+              && (
+                <svg style={{ height: '100%', width: '100%', position: 'absolute' }}
+                     viewBox={`0 0 ${originalImageWidth} ${originalImageHeight}`}>
+
+                  {candidateSelection
+                  && <SelectionCandidateSvgRect selection={candidateSelection} />}
+
+                  {selections.map((selection, index) => (
+                    <SelectionSvgRect selection={selection}
+                                      key={selection.id}
+                                      highlight={index === selections.length - 1}
+                                      setCurrentlyEditing={(selectionId, whichHandle) => {
+                                        this.changeActiveSelection(selectionId)
+                                        this.setState({
+                                          currentlyEditing: { selectionId, whichHandle },
+                                        })
+                                      }}
+                                      unsetCurrentlyEditing={() => {
+                                        this.setState({ currentlyEditing: null })
+                                        selections[selections.length - 1].ensurePositive()
+                                      }}
+                                      getSelectionRangeStart={this.getSelectionRangeStart} />
+                  ))}
+                </svg>
+              )}
+
             <img alt="Viewer"
                  src={imageSrc}
                  width="100%"
+                 ref={this.imageRef}
+                 onLoad={e => {
+                   const img = e.target
+                   this.setState({
+                     originalImageWidth: img.naturalWidth,
+                     originalImageHeight: img.naturalHeight,
+                     displayedImageWidth: img.clientWidth,
+                     // displayedImageHeight: img.clientHeight,
+                   })
+                 }}
                  onDragStart={e => e.preventDefault()} />
           </div>
         </div>
