@@ -1,6 +1,7 @@
 import zipfile
 import json
 import io
+import math
 from PIL import Image
 
 
@@ -39,17 +40,21 @@ class Selection:
     __repr__ = __str__
 
     def get_cell_groups(self):
-        cell_width = self.width - self.spacing_x * (self.num_columns + 1)
-        cell_height = self.height - self.spacing_y * (self.num_rows + 1)
+        cell_width = math.ceil(
+            (self.width - self.spacing_x * (self.num_columns - 1)) / self.num_columns
+        )
+        cell_height = math.ceil(
+            (self.height - self.spacing_y * (self.num_rows - 1)) / self.num_rows
+        )
         cell_groups = []
 
         for row_index in range(self.num_rows):
 
-            cell_y = (self.y + self.spacing_y) + (row_index * (cell_height + self.spacing_y))
+            cell_y = self.y + (row_index * (cell_height + self.spacing_y))
             cells = []
 
             for col_index in range(self.num_columns):
-                cell_x = (self.x + self.spacing_x) + (col_index * (cell_width + self.spacing_x))
+                cell_x = self.x + (col_index * (cell_width + self.spacing_x))
                 cells.append(Cell(cell_x, cell_y, cell_width, cell_height))
 
             cell_groups.append(cells)
@@ -59,7 +64,6 @@ class Selection:
 
 with open('test.zip', 'rb') as bytes:
     with zipfile.ZipFile(bytes) as zip:
-        # TODO: scaling
         selections = [Selection(dict) for dict in json.loads(zip.read('selections.json'))]
         images = [Image.open(io.BytesIO(zip.read(zi)))
                   for zi in zip.infolist() if zi.filename != 'selections.json']
