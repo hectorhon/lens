@@ -1,31 +1,29 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import PropTypes from 'prop-types'
 
-class Row extends React.Component {
-  render() {
-    const { values } = this.props
-    const cells = values.map(value => (
-      <td>
-        {value}
-      </td>
-    ))
-    return (
-      <tr>
-        {cells}
-      </tr>
-    )
-  }
-}
+import Row from './row'
 
 class Table extends React.Component {
+  getDataInArrayFormat() {
+    const { data, columnNames } = this.props
+    return data.map(entry => columnNames.map(columnName => entry[columnName]))
+  }
+
   render() {
-    const { data } = this.props
-    const rows = data.map(entry => (
-      <Row values={entry} />
+    const { columnNames } = this.props
+    const headers = columnNames.map((columnName, index) => (
+      <th key={index}>{columnName}</th>
+    ))
+    const data = this.getDataInArrayFormat()
+    const rows = data.map((entry, index) => (
+      <Row key={index} values={entry} />
     ))
     return (
       <table>
         <thead>
+          <tr>
+            {headers}
+          </tr>
         </thead>
         <tbody>
           {rows}
@@ -35,15 +33,13 @@ class Table extends React.Component {
   }
 }
 
-const data = [{
-  name: 'asdf',
-  age: 12
-}, {
-  name: 'qwer',
-  age: 34
-}]
+Table.propTypes = {
+  data: PropTypes.arrayOf(PropTypes.object).isRequired,
+  columnNames: PropTypes.arrayOf(PropTypes.string)
+}
 
-ReactDOM.render(
-  <Table data={data} columnNames={['name', 'age']} />,
-  document.getElementById('root')
-)
+Table.defaultProps = {
+  columnNames: []
+}
+
+export default Table
