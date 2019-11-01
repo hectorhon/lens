@@ -7,6 +7,7 @@ import logging
 import io
 import zipfile
 import os
+from datetime import datetime
 
 from .models import Template, Selection, Operation
 from .forms import TemplateSelectionsForm
@@ -62,6 +63,14 @@ class TemplateSelectionsView(generic.FormView):
         selections = Template.parse_selections(json_string, template_id)
         Selection.objects.filter(template_id=template_id).delete()
         Selection.objects.bulk_create(selections)
+
+        # update the updated_on field in the Template instance
+        # template = Template.objects.get(pk=template_id)
+        # template.save()
+        # avoid unnecessary SELECT
+        Template.objects.filter(pk=template_id) \
+                        .update(updated_on=datetime.now())
+
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
