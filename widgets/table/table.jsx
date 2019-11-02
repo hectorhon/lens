@@ -10,14 +10,16 @@ class Table extends React.Component {
   }
 
   render() {
-    const { columnNames } = this.props
-    const headers = columnNames.map((columnName, index) => (
-      <th key={index}>{columnName}</th>
+    const { data, pk, columnNames } = this.props
+    const headers = columnNames.map(columnName => (
+      <th key={columnName}>{columnName}</th>
     ))
-    const data = this.getDataInArrayFormat()
-    const rows = data.map((entry, index) => (
-      <Row key={index} values={entry} />
-    ))
+    const rows = data.map((entry, index) => {
+      const values = columnNames.map(columnName => entry[columnName])
+      return (
+        <Row key={data[index][pk]} rowIndex={index} values={values} />
+      )
+    })
     return (
       <table>
         <thead>
@@ -35,11 +37,12 @@ class Table extends React.Component {
 
 Table.propTypes = {
   data: PropTypes.arrayOf(PropTypes.object).isRequired,
-  columnNames: PropTypes.arrayOf(PropTypes.string)
+  pk: PropTypes.string.isRequired,
+  columnNames: PropTypes.arrayOf(PropTypes.string),
 }
 
 Table.defaultProps = {
-  columnNames: []
+  columnNames: [],
 }
 
 export default Table
