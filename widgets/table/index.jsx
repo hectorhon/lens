@@ -11,26 +11,29 @@ const data = [{
   name: 'asdf',
   age: 12,
   gender: 'M',
+  weight: 50.50,
 }, {
   id: 2,
   name: 'qwer',
   age: 34,
   gender: 'F',
+  weight: 60.60,
 }, {
   id: 3,
   name: 'uiop',
   age: 56,
   gender: 'M',
+  weight: 70.70,
 }]
 
-const store = createStore(tableWidget)
+const store = createStore(tableWidget, {
+  columnNames: ['name', 'age', 'gender', 'weight']
+})
 
 ReactDOM.render(
   (
     <Provider store={store}>
-      <Table data={data}
-             pk="id"
-             columnNames={['name', 'age', 'gender']} />
+      <Table data={data} pk="id" />
     </Provider>
   ),
   document.getElementById('root')
