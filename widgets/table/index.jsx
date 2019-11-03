@@ -37,7 +37,7 @@ const store = createStore(tableWidget, {
 ReactDOM.render(
   (
     <Provider store={store}>
-      <Table dataSource="/api/table-data" pk="id" />
+      <Table dataSourceUrl="/api/table-data" pk="id" />
     </Provider>
   ),
   document.getElementById('root')

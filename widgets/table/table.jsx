@@ -37,7 +37,7 @@ class Table extends React.Component {
 
   render() {
     const {
-      dataSource, pk, data, columnNames, fetchData
+      dataSourceUrl, pk, data, columnNames, fetchData
     } = this.props
     const headers = columnNames.map(columnName => (
       <th key={columnName}
@@ -56,7 +56,7 @@ class Table extends React.Component {
     })
     return (
       <div className="react-table">
-        <button type="button" onClick={() => fetchData(dataSource)}>Refresh</button>
+        <button type="button" onClick={() => fetchData(dataSourceUrl)}>Refresh</button>
         <table style={{ userSelect: 'none' }}>
           <thead>
             <tr>
@@ -73,7 +73,7 @@ class Table extends React.Component {
 }
 
 Table.propTypes = {
-  dataSource: PropTypes.string.isRequired,
+  dataSourceUrl: PropTypes.string.isRequired,
   pk: PropTypes.string.isRequired,
   data: PropTypes.arrayOf(PropTypes.object).isRequired,
   columnNames: PropTypes.arrayOf(PropTypes.string),
