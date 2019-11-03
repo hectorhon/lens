@@ -36,7 +36,9 @@ class Table extends React.Component {
   }
 
   render() {
-    const { data, pk, columnNames } = this.props
+    const {
+      dataSource, pk, data, columnNames, fetchData
+    } = this.props
     const headers = columnNames.map(columnName => (
       <th key={columnName}
           draggable="true"
@@ -53,25 +55,30 @@ class Table extends React.Component {
       )
     })
     return (
-      <table style={{ userSelect: 'none' }}>
-        <thead>
-          <tr>
-            {headers}
-          </tr>
-        </thead>
-        <tbody>
-          {rows}
-        </tbody>
-      </table>
+      <div className="react-table">
+        <button type="button" onClick={() => fetchData(dataSource)}>Refresh</button>
+        <table style={{ userSelect: 'none' }}>
+          <thead>
+            <tr>
+              {headers}
+            </tr>
+          </thead>
+          <tbody>
+            {rows}
+          </tbody>
+        </table>
+      </div>
     )
   }
 }
 
 Table.propTypes = {
-  data: PropTypes.arrayOf(PropTypes.object).isRequired,
+  dataSource: PropTypes.string.isRequired,
   pk: PropTypes.string.isRequired,
+  data: PropTypes.arrayOf(PropTypes.object).isRequired,
   columnNames: PropTypes.arrayOf(PropTypes.string),
   moveColumn: PropTypes.func.isRequired,
+  fetchData: PropTypes.func.isRequired,
 }
 
 Table.defaultProps = {
@@ -79,11 +86,13 @@ Table.defaultProps = {
 }
 
 const mapStateToProps = state => ({
+  data: state.data,
   columnNames: state.columnNames
 })
 
 const mapDispatchToProps = {
-  moveColumn: actions.moveColumn
+  moveColumn: actions.moveColumn,
+  fetchData: actions.fetchData,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Table)

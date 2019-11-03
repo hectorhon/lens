@@ -3,6 +3,8 @@ import { combineReducers } from 'redux'
 import {
   SELECT_CELL,
   MOVE_COLUMN,
+  REQUEST_DATA,
+  RECEIVE_DATA,
 } from './actions'
 
 function activeCell(state = {}, action) {
@@ -59,9 +61,23 @@ function columnNames(state = [], action) {
   }
 }
 
+function data(state = [], action) {
+  switch (action.type) {
+    case REQUEST_DATA:
+      // Clear the existing data in the state
+      return []
+    case RECEIVE_DATA:
+      // Update the state with the received data
+      return action.data
+    default:
+      return state
+  }
+}
+
 const tableWidget = combineReducers({
   activeCell,
   columnNames,
+  data,
 })
 
 export default tableWidget

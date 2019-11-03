@@ -1,12 +1,13 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { createStore } from 'redux'
+import { createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
+import thunkMiddleware from 'redux-thunk'
 
 import tableWidget from './reducers'
 import Table from './table'
 
-const data = [{
+const initialData = [{
   id: 1,
   name: 'asdf',
   age: 12,
@@ -27,13 +28,16 @@ const data = [{
 }]
 
 const store = createStore(tableWidget, {
-  columnNames: ['name', 'age', 'gender', 'weight']
-})
+  data: initialData,
+  columnNames: ['name', 'age', 'gender', 'weight'],
+}, applyMiddleware(
+  thunkMiddleware
+))
 
 ReactDOM.render(
   (
     <Provider store={store}>
-      <Table data={data} pk="id" />
+      <Table dataSource="/api/table-data" pk="id" />
     </Provider>
   ),
   document.getElementById('root')
