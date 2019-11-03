@@ -29,9 +29,16 @@ class Cell extends React.Component {
 Cell.propTypes = {
   rowIndex: PropTypes.number.isRequired,
   columnIndex: PropTypes.number.isRequired,
-  value: PropTypes.any.isRequired, // eslint-disable-line
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ]),
   isSelected: PropTypes.bool.isRequired,
   selectCell: PropTypes.func.isRequired,
+}
+
+Cell.defaultProps = {
+  value: ''
 }
 
 const mapStateToProps = (state, ownProps) => {
