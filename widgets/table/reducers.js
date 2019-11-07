@@ -1,3 +1,6 @@
+// Don't mutate the state
+// https://redux.js.org/basics/reducers
+
 import { combineReducers } from 'redux'
 
 import {
@@ -5,6 +8,8 @@ import {
   MOVE_COLUMN,
   REQUEST_DATA,
   RECEIVE_DATA,
+  GO_NEXT_PAGE,
+  GO_PREVIOUS_PAGE,
 } from './actions'
 
 function activeCell(state = {}, action) {
@@ -64,13 +69,47 @@ function columnNames(state = [], action) {
 function data(state = [], action) {
   switch (action.type) {
     case REQUEST_DATA:
-      // Clear the existing data in the state
-      return []
-    case RECEIVE_DATA:
-      // Update the state with the received data
-      return action.data
+      // TODO: show loading indicator or something
+      return state
+    case RECEIVE_DATA: {
+      // Merge the received data to the state
+      const updatedState = state.slice()
+      action.data.forEach(entry => {
+        const indexOfExistingEntry = updatedState.findIndex(e => e.id === entry.id)
+        if (indexOfExistingEntry === -1) {
+          // new entry, append to end
+          updatedState.push(entry)
+        } else {
+          // existing entry, update it
+          updatedState.splice(indexOfExistingEntry, 1, entry)
+        }
+      })
+      return updatedState
+    }
     default:
       return state
+  }
+}
+
+function pagination(state = {
+  currentPageNumber: 1,
+  pageSize: 2,
+}, action) {
+  const { currentPageNumber } = state
+  switch (action.type) {
+    case GO_NEXT_PAGE: {
+      const { maxPageNumber } = action
+      return {
+        ...state,
+        currentPageNumber: Math.min(currentPageNumber + 1, maxPageNumber),
+      }
+    }
+    case GO_PREVIOUS_PAGE:
+      return {
+        ...state,
+        currentPageNumber: Math.max(currentPageNumber - 1, 1),
+      }
+    default: return state
   }
 }
 
@@ -78,6 +117,7 @@ const tableWidget = combineReducers({
   activeCell,
   columnNames,
   data,
+  pagination,
 })
 
 export default tableWidget

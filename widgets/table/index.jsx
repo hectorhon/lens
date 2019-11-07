@@ -29,7 +29,7 @@ const initialData = [{
 
 const store = createStore(tableWidget, {
   data: initialData,
-  columnNames: ['name', 'age', 'gender', 'weight'],
+  columnNames: ['id', 'name', 'age', 'gender', 'weight'],
 }, applyMiddleware(
   thunkMiddleware
 ))

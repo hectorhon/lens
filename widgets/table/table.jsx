@@ -37,8 +37,10 @@ class Table extends React.Component {
 
   render() {
     const {
-      dataSourceUrl, pk, data, columnNames, fetchData
+      dataSourceUrl, pk, data, columnNames, fetchData,
+      currentPageNumber, pageSize, maxPageNumber, goNextPage, goPreviousPage,
     } = this.props
+
     const headers = columnNames.map(columnName => (
       <th key={columnName}
           draggable="true"
@@ -48,15 +50,27 @@ class Table extends React.Component {
         {columnName}
       </th>
     ))
-    const rows = data.map((entry, index) => {
+
+    const pagedDataStartIndex = (currentPageNumber - 1) * pageSize
+    const pagedDataEndIndex = pagedDataStartIndex + pageSize
+    const pagedData = data.slice(pagedDataStartIndex, pagedDataEndIndex)
+
+    const rows = pagedData.map((entry, index) => {
       const values = columnNames.map(columnName => entry[columnName])
       return (
         <Row key={data[index][pk]} rowIndex={index} values={values} />
       )
     })
+
     return (
       <div className="react-table">
         <button type="button" onClick={() => fetchData(dataSourceUrl)}>Refresh</button>
+
+        <p>
+          Showing {pagedDataStartIndex + 1}-{pagedDataStartIndex + pagedData.length}{' '}
+          of {data.length} results.
+        </p>
+
         <table style={{ userSelect: 'none' }}>
           <thead>
             <tr>
@@ -67,6 +81,12 @@ class Table extends React.Component {
             {rows}
           </tbody>
         </table>
+
+        {currentPageNumber > 1
+        && <button type="button" onClick={goPreviousPage}>Previous page</button>}
+
+        {currentPageNumber < maxPageNumber
+        && <button type="button" onClick={() => goNextPage(maxPageNumber)}>Next page</button>}
       </div>
     )
   }
@@ -79,6 +99,11 @@ Table.propTypes = {
   columnNames: PropTypes.arrayOf(PropTypes.string),
   moveColumn: PropTypes.func.isRequired,
   fetchData: PropTypes.func.isRequired,
+  currentPageNumber: PropTypes.number.isRequired,
+  pageSize: PropTypes.number.isRequired,
+  maxPageNumber: PropTypes.number.isRequired,
+  goNextPage: PropTypes.func.isRequired,
+  goPreviousPage: PropTypes.func.isRequired,
 }
 
 Table.defaultProps = {
@@ -87,12 +112,17 @@ Table.defaultProps = {
 
 const mapStateToProps = state => ({
   data: state.data,
-  columnNames: state.columnNames
+  columnNames: state.columnNames,
+  currentPageNumber: state.pagination.currentPageNumber,
+  pageSize: state.pagination.pageSize,
+  maxPageNumber: Math.ceil(state.data.length / state.pagination.pageSize),
 })
 
 const mapDispatchToProps = {
   moveColumn: actions.moveColumn,
   fetchData: actions.fetchData,
+  goNextPage: actions.goNextPage,
+  goPreviousPage: actions.goPreviousPage,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Table)

@@ -66,6 +66,12 @@ router.get('/api/table-data', (req, res) => {
       age: 56,
       gender: 'M',
       weight: 71.71,
+    }, {
+      id: 4,
+      name: 'zxcv',
+      age: 78,
+      gender: 'M',
+      weight: 81.81,
     }]
     res.json(data)
   }, 1000)
