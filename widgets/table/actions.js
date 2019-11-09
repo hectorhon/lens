@@ -31,14 +31,13 @@ export function receiveData(data) {
   }
 }
 
-export function fetchData(url) {
+// User clicks on the refresh button
+// refreshData: Function that returns a promise to return the fresh data
+export function refresh(refreshData) {
   return dispatch => {
     dispatch(requestData())
-    return fetch(url)
-      .then(
-        response => response.json(),
-        error => console.log('An error occurred.', error)
-      )
+    const promise = refreshData()
+    return promise
       .then(
         data => dispatch(receiveData(data))
       )

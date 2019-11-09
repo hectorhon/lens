@@ -12,14 +12,26 @@ import {
   GO_PREVIOUS_PAGE,
 } from './actions'
 
-function activeCell(state = {}, action) {
+function data(state = [], action) {
   switch (action.type) {
-    case SELECT_CELL:
-      return {
-        ...state,
-        rowIndex: action.rowIndex,
-        columnIndex: action.columnIndex,
-      }
+    case REQUEST_DATA:
+      // TODO: show loading indicator or something
+      return state
+    case RECEIVE_DATA: {
+      // Merge the received data to the state
+      const updatedState = state.slice()
+      action.data.forEach(entry => {
+        const indexOfExistingEntry = updatedState.findIndex(e => e.id === entry.id)
+        if (indexOfExistingEntry === -1) {
+          // new entry, append to end
+          updatedState.push(entry)
+        } else {
+          // existing entry, update it
+          updatedState.splice(indexOfExistingEntry, 1, entry)
+        }
+      })
+      return updatedState
+    }
     default:
       return state
   }
@@ -66,34 +78,13 @@ function columnNames(state = [], action) {
   }
 }
 
-function data(state = [], action) {
-  switch (action.type) {
-    case REQUEST_DATA:
-      // TODO: show loading indicator or something
-      return state
-    case RECEIVE_DATA: {
-      // Merge the received data to the state
-      const updatedState = state.slice()
-      action.data.forEach(entry => {
-        const indexOfExistingEntry = updatedState.findIndex(e => e.id === entry.id)
-        if (indexOfExistingEntry === -1) {
-          // new entry, append to end
-          updatedState.push(entry)
-        } else {
-          // existing entry, update it
-          updatedState.splice(indexOfExistingEntry, 1, entry)
-        }
-      })
-      return updatedState
-    }
-    default:
-      return state
-  }
+function sortBy(state = '', action) {
+  return state
 }
 
 function pagination(state = {
   currentPageNumber: 1,
-  pageSize: 2,
+  pageSize: 10,
 }, action) {
   const { currentPageNumber } = state
   switch (action.type) {
@@ -113,11 +104,25 @@ function pagination(state = {
   }
 }
 
+function activeCell(state = {}, action) {
+  switch (action.type) {
+    case SELECT_CELL:
+      return {
+        ...state,
+        rowIndex: action.rowIndex,
+        columnIndex: action.columnIndex,
+      }
+    default:
+      return state
+  }
+}
+
 const tableWidget = combineReducers({
-  activeCell,
-  columnNames,
   data,
+  columnNames,
+  sortBy,
   pagination,
+  activeCell,
 })
 
 export default tableWidget

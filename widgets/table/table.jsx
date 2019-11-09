@@ -37,8 +37,11 @@ class Table extends React.Component {
 
   render() {
     const {
-      dataSourceUrl, pk, data, columnNames, fetchData,
-      currentPageNumber, pageSize, maxPageNumber, goNextPage, goPreviousPage,
+      pk, refreshData,
+
+      data, columnNames, sortBy, currentPageNumber, pageSize, maxPageNumber,
+
+      refresh, goNextPage, goPreviousPage,
     } = this.props
 
     const headers = columnNames.map(columnName => (
@@ -64,12 +67,14 @@ class Table extends React.Component {
 
     return (
       <div className="react-table">
-        <button type="button" onClick={() => fetchData(dataSourceUrl)}>Refresh</button>
+        <button type="button" onClick={() => refresh(() => refreshData(sortBy))}>Refresh</button>
 
         <p>
           Showing {pagedDataStartIndex + 1}-{pagedDataStartIndex + pagedData.length}{' '}
           of {data.length} results.
         </p>
+
+        <p>Current sort: {sortBy}</p>
 
         <table style={{ userSelect: 'none' }}>
           <thead>
@@ -93,15 +98,22 @@ class Table extends React.Component {
 }
 
 Table.propTypes = {
-  dataSourceUrl: PropTypes.string.isRequired,
+  // From props
   pk: PropTypes.string.isRequired,
+  refreshData: PropTypes.func.isRequired,
+  fetchMoreData: PropTypes.func.isRequired, // eslint-disable-line
+
+  // From mapStateToProps
   data: PropTypes.arrayOf(PropTypes.object).isRequired,
   columnNames: PropTypes.arrayOf(PropTypes.string),
-  moveColumn: PropTypes.func.isRequired,
-  fetchData: PropTypes.func.isRequired,
+  sortBy: PropTypes.string.isRequired,
   currentPageNumber: PropTypes.number.isRequired,
   pageSize: PropTypes.number.isRequired,
   maxPageNumber: PropTypes.number.isRequired,
+
+  // From mapDispatchToProps
+  refresh: PropTypes.func.isRequired,
+  moveColumn: PropTypes.func.isRequired,
   goNextPage: PropTypes.func.isRequired,
   goPreviousPage: PropTypes.func.isRequired,
 }
@@ -113,14 +125,15 @@ Table.defaultProps = {
 const mapStateToProps = state => ({
   data: state.data,
   columnNames: state.columnNames,
+  sortBy: state.sortBy,
   currentPageNumber: state.pagination.currentPageNumber,
   pageSize: state.pagination.pageSize,
   maxPageNumber: Math.ceil(state.data.length / state.pagination.pageSize),
 })
 
 const mapDispatchToProps = {
+  refresh: actions.refresh,
   moveColumn: actions.moveColumn,
-  fetchData: actions.fetchData,
   goNextPage: actions.goNextPage,
   goPreviousPage: actions.goPreviousPage,
 }
