@@ -11,19 +11,17 @@ class Table extends React.Component {
     this.handleDragStart = this.handleDragStart.bind(this)
     this.handleDragOver = this.handleDragOver.bind(this)
     this.handleDrop = this.handleDrop.bind(this)
+    this.handleRefreshButtonClicked = this.handleRefreshButtonClicked.bind(this)
+    this.handlePreviousPageButtonClicked = this.handlePreviousPageButtonClicked.bind(this)
+    this.handleNextPageButtonClicked = this.handleNextPageButtonClicked.bind(this)
   }
 
-  getDataInArrayFormat() {
-    const { data, columnNames } = this.props
-    return data.map(entry => columnNames.map(columnName => entry[columnName]))
-  }
-
-  handleDragStart(e) {
+  handleDragStart(e) { // eslint-disable-line
     e.dataTransfer.setData('text/plain', e.target.innerText)
     e.dataTransfer.dropEffect = 'move'
   }
 
-  handleDragOver(e) {
+  handleDragOver(e) { // eslint-disable-line
     e.preventDefault() // required for the <th> to become a drop zone
   }
 
@@ -35,13 +33,28 @@ class Table extends React.Component {
     moveColumn(columnToBeMoved, moveToBeforeThisColumn)
   }
 
+  handleRefreshButtonClicked() {
+    const { refreshData, refresh } = this.props
+    refresh(refreshData)
+  }
+
+  handlePreviousPageButtonClicked() {
+    const { goPreviousPage } = this.props
+    goPreviousPage()
+  }
+
+  handleNextPageButtonClicked() {
+    const { goNextPage, fetchMoreData, getEstimatedEntriesCount } = this.props
+    goNextPage(fetchMoreData, getEstimatedEntriesCount)
+  }
+
   render() {
     const {
-      pk, refreshData,
-
-      data, columnNames, sortBy, currentPageNumber, pageSize, maxPageNumber,
-
-      refresh, goNextPage, goPreviousPage,
+      pk,
+      columnNames,
+      // pagination related
+      currentPageNumber, pagedData, pagedDataStartIndex, pagedDataEndIndex,
+      sortBy, estimatedEntriesCount, maxPageNumber,
     } = this.props
 
     const headers = columnNames.map(columnName => (
@@ -54,24 +67,20 @@ class Table extends React.Component {
       </th>
     ))
 
-    const pagedDataStartIndex = (currentPageNumber - 1) * pageSize
-    const pagedDataEndIndex = pagedDataStartIndex + pageSize
-    const pagedData = data.slice(pagedDataStartIndex, pagedDataEndIndex)
-
     const rows = pagedData.map((entry, index) => {
       const values = columnNames.map(columnName => entry[columnName])
       return (
-        <Row key={data[index][pk]} rowIndex={index} values={values} />
+        <Row key={pagedData[index][pk]} rowIndex={index} values={values} />
       )
     })
 
     return (
       <div className="react-table">
-        <button type="button" onClick={() => refresh(() => refreshData(sortBy))}>Refresh</button>
+        <button type="button" onClick={this.handleRefreshButtonClicked}>Refresh</button>
 
         <p>
-          Showing {pagedDataStartIndex + 1}-{pagedDataStartIndex + pagedData.length}{' '}
-          of {data.length} results.
+          Showing {pagedDataStartIndex + 1}-{pagedDataEndIndex}{' '}
+          of {estimatedEntriesCount} results.
         </p>
 
         <p>Current sort: {sortBy}</p>
@@ -87,11 +96,17 @@ class Table extends React.Component {
           </tbody>
         </table>
 
-        {currentPageNumber > 1
-        && <button type="button" onClick={goPreviousPage}>Previous page</button>}
+        <button type="button"
+                onClick={this.handlePreviousPageButtonClicked}
+                disabled={currentPageNumber === 1}>
+          Previous page
+        </button>
 
-        {currentPageNumber < maxPageNumber
-        && <button type="button" onClick={() => goNextPage(maxPageNumber)}>Next page</button>}
+        <button type="button"
+                onClick={this.handleNextPageButtonClicked}
+                disabled={currentPageNumber === maxPageNumber}>
+          Next page
+        </button>
       </div>
     )
   }
@@ -99,16 +114,19 @@ class Table extends React.Component {
 
 Table.propTypes = {
   // From props
-  pk: PropTypes.string.isRequired,
   refreshData: PropTypes.func.isRequired,
-  fetchMoreData: PropTypes.func.isRequired, // eslint-disable-line
+  fetchMoreData: PropTypes.func.isRequired,
+  getEstimatedEntriesCount: PropTypes.func.isRequired,
+  pk: PropTypes.string.isRequired,
 
   // From mapStateToProps
-  data: PropTypes.arrayOf(PropTypes.object).isRequired,
   columnNames: PropTypes.arrayOf(PropTypes.string),
-  sortBy: PropTypes.string.isRequired,
   currentPageNumber: PropTypes.number.isRequired,
-  pageSize: PropTypes.number.isRequired,
+  pagedData: PropTypes.arrayOf(PropTypes.object).isRequired,
+  pagedDataStartIndex: PropTypes.number.isRequired,
+  pagedDataEndIndex: PropTypes.number.isRequired,
+  sortBy: PropTypes.string.isRequired,
+  estimatedEntriesCount: PropTypes.number.isRequired,
   maxPageNumber: PropTypes.number.isRequired,
 
   // From mapDispatchToProps
@@ -123,12 +141,14 @@ Table.defaultProps = {
 }
 
 const mapStateToProps = state => ({
-  data: state.data,
   columnNames: state.columnNames,
-  sortBy: state.sortBy,
   currentPageNumber: state.pagination.currentPageNumber,
-  pageSize: state.pagination.pageSize,
-  maxPageNumber: Math.ceil(state.data.length / state.pagination.pageSize),
+  pagedData: state.pagination.pagedData,
+  pagedDataStartIndex: state.pagination.pagedDataStartIndex,
+  pagedDataEndIndex: state.pagination.pagedDataEndIndex,
+  sortBy: state.pagination.sortBy,
+  estimatedEntriesCount: state.pagination.estimatedEntriesCount,
+  maxPageNumber: state.pagination.maxPageNumber,
 })
 
 const mapDispatchToProps = {
