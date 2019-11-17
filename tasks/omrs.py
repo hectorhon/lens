@@ -3,23 +3,7 @@ import json
 import io
 import math
 from PIL import Image
-
-
-class Cell:
-    def __init__(self, x, y, width, height):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-
-    def __str__(self):
-        return 'Cell (%d, %d)' % (self.x, self.y)
-
-    __repr__ = __str__
-
-    def to_crop_region_tuple(self):
-        """(left, upper, right, lower)"""
-        return (self.x, self.y, self.x + self.width, self.y + self.height)
+import random
 
 
 class Selection:
@@ -39,41 +23,113 @@ class Selection:
 
     __repr__ = __str__
 
-    def get_cell_groups(self):
-        cell_width = math.ceil(
-            (self.width - self.spacing_x * (self.num_columns - 1)) / self.num_columns
-        )
-        cell_height = math.ceil(
-            (self.height - self.spacing_y * (self.num_rows - 1)) / self.num_rows
-        )
-        cell_groups = []
 
-        for row_index in range(self.num_rows):
+class Cell:
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.image = None
+        self.value = None
 
-            cell_y = self.y + (row_index * (cell_height + self.spacing_y))
-            cells = []
+    def __str__(self):
+        return 'Cell (%d, %d)' % (self.x, self.y)
 
-            for col_index in range(self.num_columns):
-                cell_x = self.x + (col_index * (cell_width + self.spacing_x))
-                cells.append(Cell(cell_x, cell_y, cell_width, cell_height))
+    __repr__ = __str__
 
-            cell_groups.append(cells)
+    def extract_image_part(self, whole_image):
+        # box is (left coords, upper coords, right coords, lower coords)
+        box = (self.x, self.y, self.x + self.width, self.y + self.height)
+        self.image = whole_image.crop(box)
 
-        return cell_groups
+    def estimate_value(self):
+        self.value = random.random()
+
+
+class Row:
+    def __init__(self, number, num_columns,
+                 x, y, width, height, spacing_x):
+        self.number = number  # 1 based
+        self.num_columns = num_columns
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.spacing_x = spacing_x
+
+        cell_width = math.ceil((width - spacing_x * (num_columns - 1)) / num_columns)
+        cell_height = height
+        self.cells = [
+            Cell(x + (cell_width + spacing_x) * column_index,
+                 y,
+                 cell_width,
+                 cell_height)
+            for column_index in range(num_columns)
+        ]
+
+        self.choice = None
+
+    def determine_choice(self):
+        for cell in self.cells:
+            cell.estimate_value()
+
+        values = [cell.value for cell in self.cells]
+        choice = values.index(max(values))
+        self.choice = choice
+
+
+class Page:
+    def __init__(self, selections):
+        self.rows = []
+        for selection in selections:
+            row_width = selection.width
+            row_height = math.ceil(
+                (selection.height - selection.spacing_y * (selection.num_rows - 1))
+                / selection.num_rows
+            )
+            for row_index in range(selection.num_rows):
+                row = Row(row_index + 1,  # 1 based
+                          selection.num_columns,
+                          selection.x,
+                          selection.y + (row_height + selection.spacing_y) * row_index,
+                          row_width,
+                          row_height,
+                          selection.spacing_x)
+                self.rows.append(row)
+
+        self.current_image = None
+
+    def set_image(self, image):
+        self.current_image = image
+        for row in self.rows:
+            for cell in row.cells:
+                cell.extract_image_part(self.current_image)
+
+    def dump_cells(self):
+        for row in self.rows:
+            for cell_index, cell in enumerate(row.cells):
+                filename = 'img_%03d_%d.jpg' % (row.number, cell_index)
+                cell.image.save(filename)
+
+    def get_choices(self):
+        for row in self.rows:
+            row.determine_choice()
+
+        return [row.choice for row in self.rows]
 
 
 with open('test.zip', 'rb') as bytes:
     with zipfile.ZipFile(bytes) as zip:
         selections = [Selection(dict) for dict in json.loads(zip.read('selections.json'))]
+
+        page = Page(selections)
+
         images = [Image.open(io.BytesIO(zip.read(zi)))
                   for zi in zip.infolist() if zi.filename != 'selections.json']
+
         for image in images:
-            for selection_index, selection in enumerate(selections, start=1):
-                for cell_group_index, cell_group in enumerate(selection.get_cell_groups(), start=1):
-                    for cell_index, cell in enumerate(cell_group, start=1):
-                        filename = 'img_%03d_%03d_%d.jpg' % \
-                            (selection_index, cell_group_index, cell_index)
-                        box = cell.to_crop_region_tuple()
-                        region = image.crop(box)
-                        region.save(filename)
-                break
+            page.set_image(image)
+            # page.dump_cells()
+            choices = page.get_choices()
+            print(choices)
