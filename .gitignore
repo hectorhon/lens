@@ -60,5 +60,9 @@ typings/
 # next.js build output
 .next
 
+# generated css files
+public/stylesheets/*.css
+public/stylesheets/*.css.map
+
 # webpack build output
 public/javascripts/dist/

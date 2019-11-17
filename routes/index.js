@@ -42,4 +42,45 @@ router.get('/api/image-list', (req, res) => {
   })
 })
 
+router.get('/table', (req, res) => {
+  res.render('table')
+})
+
+router.get('/api/table-data', (req, res) => {
+  setTimeout(() => {
+    const data = [{
+      id: 1,
+      name: 'asdf',
+      age: 12,
+      gender: 'M',
+      weight: 51.51,
+    }, {
+      id: 2,
+      name: 'qwer',
+      age: 34,
+      gender: 'F',
+      weight: 61.61,
+    }, {
+      id: 3,
+      name: 'uiop',
+      age: 56,
+      gender: 'M',
+      weight: 71.71,
+    }, {
+      id: 4,
+      name: 'zxcv',
+      age: 78,
+      gender: 'M',
+      weight: 81.81,
+    }, {
+      id: 5,
+      name: 'hjkl',
+      age: 90,
+      gender: 'F',
+      weight: 91.91,
+    }]
+    res.json(data)
+  }, 1000)
+})
+
 module.exports = router
