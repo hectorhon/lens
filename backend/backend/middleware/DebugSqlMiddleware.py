@@ -1,6 +1,9 @@
 from django.db import connection
 from django.conf import settings
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 def debug_sql_middleware(get_response):
 
@@ -12,7 +15,7 @@ def debug_sql_middleware(get_response):
             return response
 
         for query in connection.queries:
-            print(query['sql'])
+            logger.debug(query['sql'])
 
         return response
 
