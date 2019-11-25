@@ -20,6 +20,7 @@ from django.conf.urls.static import static
 from backend.views import index
 
 urlpatterns = [
+    path('accounts/', include('django.contrib.auth.urls')),
     path('', index),
     path('core/', include('core.urls')),
     path('omrs/', include('omrs.urls')),

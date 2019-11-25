@@ -1,0 +1,10 @@
+<!-- -*- engine: django -*- -->
+
+<html lang="en">
+  <head>
+    <title>{% if title %}{{ title }} - {% endif %}{% if subtitle %}{{ subtitle }} - {% endif %}Lens</title>
+  </head>
+  <body>
+    You are logged out <a href="{% url 'core:index' %}">Go home</a>
+  </body>
+</html>

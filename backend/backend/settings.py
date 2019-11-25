@@ -50,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'backend.middleware.LoginRequiredMiddleware.login_required_middleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -57,7 +58,7 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, os.path.join(os.path.basename(BASE_DIR), 'templates'))],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

@@ -1,0 +1,4 @@
+/* Don't show dotted lines around dropdown links in the nav bar when clicked */
+.nav-link.dropdown-toggle {
+    outline: none;
+}
