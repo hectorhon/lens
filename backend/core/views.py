@@ -5,9 +5,11 @@ from django.core.files.images import ImageFile
 
 from .models import Image, Album
 from .forms import ImageUploadForm, AlbumCreateForm
+from .tasks import debug_task
 
 
 def index(request):
+    debug_task.delay()
     return render(request, 'core/index.html')
 
 
