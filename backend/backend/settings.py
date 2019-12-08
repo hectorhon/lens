@@ -39,7 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # https://docs.celeryproject.org/en/latest/django/first-steps-with-django.html
+    # #django-celery-results-using-the-django-orm-cache-as-a-result-backend
+    'django_celery_results',
 ]
+
+CELERY_RESULT_BACKEND = 'django-db'
 
 MIDDLEWARE = [
     'backend.middleware.DebugSqlMiddleware.debug_sql_middleware',

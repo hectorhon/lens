@@ -1,16 +1,15 @@
 from django.shortcuts import render
 from django.views import generic
 from django.urls import reverse_lazy
+from django.core import serializers
 
 import json
 import logging
-import io
-import zipfile
-import os
 from datetime import datetime
 
 from .models import Template, Selection, Operation
 from .forms import TemplateSelectionsForm
+from .tasks.scan import scan_task
 
 logger = logging.getLogger(__name__)
 
@@ -103,27 +102,15 @@ class OperationCreateView(generic.CreateView):
     def form_valid(self, form):
         template = form.cleaned_data['template']
         selections = template.selection_set.order_by('order')
+
         album = form.cleaned_data['album']
         images = album.image_set.all()  # TODO: need ordering
-        serialized_selections = json.dumps([{
-            'x': selection.x,
-            'y': selection.y,
-            'width': selection.width,
-            'height': selection.height,
-            'numRows': selection.num_rows,
-            'numColumns': selection.num_columns,
-            'spacingX': selection.spacing_x,
-            'spacingY': selection.spacing_y,
-        } for selection in selections], indent=4)
-        buffer = io.BytesIO()
-        zip = zipfile.ZipFile(buffer, mode='w')
-        zip.writestr('selections.json', serialized_selections)
-        for index, image in enumerate(images, start=1):
-            zip.writestr(os.path.basename(image.original.file.name),
-                         image.original.file.read())
-            zip.close()
-        with open('test.zip', 'wb') as f:  # TODO: find a location
-            f.write(buffer.getvalue())
+
+        serialized_selections = serializers.serialize('json', selections)
+
+        image_filepaths = [image.original.file.name for image in images]
+        scan_task.delay(serialized_selections, image_filepaths)
+
         return super().form_valid(form)
 
 
