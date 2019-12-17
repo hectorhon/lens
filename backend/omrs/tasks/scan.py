@@ -1,17 +1,22 @@
 from celery import shared_task
-from django.core import serializers
+from celery.utils.log import get_task_logger
+from django.db import connection
 
 from PIL import Image
 import math
 import random
 
+from omrs.models import Template
+
+logger = get_task_logger(__name__)
+
 
 @shared_task(bind=True)
-def scan_task(self, serialized_selections, image_filepaths):
-    print('Request: {0!r}'.format(self.request))
+def scan_task(self, template_id, image_filepaths):
+    logger.debug('Request: {0!r}'.format(self.request))
 
-    selections = [deserialized_object.object
-                  for deserialized_object in serializers.deserialize('json', serialized_selections)]
+    template = Template.objects.get(pk=template_id)
+    selections = template.selection_set.order_by('order')
 
     page = Page(selections)
 
@@ -19,7 +24,10 @@ def scan_task(self, serialized_selections, image_filepaths):
         image = Image.open(image_filepath)
         page.set_image(image)
         choices = page.get_choices()
-        print(image_filepath, choices)
+        logger.info('%s - %s', image_filepath, choices)
+
+    for query in connection.queries:
+        logger.debug(query['sql'])
 
 
 class Cell:

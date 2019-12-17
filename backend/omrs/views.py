@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from django.views import generic
 from django.urls import reverse_lazy
-from django.core import serializers
 
 import json
 import logging
@@ -100,17 +99,10 @@ class OperationCreateView(generic.CreateView):
     success_url = reverse_lazy('omrs:operation_list')
 
     def form_valid(self, form):
-        template = form.cleaned_data['template']
-        selections = template.selection_set.order_by('order')
-
-        album = form.cleaned_data['album']
-        images = album.image_set.all()  # TODO: need ordering
-
-        serialized_selections = serializers.serialize('json', selections)
-
+        template_id = form.cleaned_data['template'].id
+        images = form.cleaned_data['album'].image_set.all()  # TODO: need ordering
         image_filepaths = [image.original.file.name for image in images]
-        scan_task.delay(serialized_selections, image_filepaths)
-
+        scan_task.delay(template_id, image_filepaths)
         return super().form_valid(form)
 
 
