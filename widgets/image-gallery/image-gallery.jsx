@@ -10,6 +10,7 @@ class ImageGallery extends React.Component {
       pageNumber: undefined,
       imageIds: [],
       totalPages: 1,
+      selectedImageIds: [],
     }
   }
 
@@ -22,12 +23,15 @@ class ImageGallery extends React.Component {
     const { pageNumber, imageIds } = this.state
 
     let getImageIdsPromise
-    if (newPageNumber > pageNumber || pageNumber === undefined) {
+    if (newPageNumber > pageNumber) {
       const fromId = imageIds[pageSize - 1]
       getImageIdsPromise = getImageIds(fromId, pageSize)
-    } else {
+    } else if (newPageNumber < pageNumber) {
       const fromId = imageIds[0]
       getImageIdsPromise = getImageIds(fromId, -pageSize)
+    } else if (pageNumber === undefined) {
+      const fromId = undefined
+      getImageIdsPromise = getImageIds(fromId, pageSize)
     }
 
     const [newImageIds, imagesCount] = await Promise.all([getImageIdsPromise, getImagesCount()])
@@ -40,9 +44,42 @@ class ImageGallery extends React.Component {
     })
   }
 
+  async refreshCurrentPage() {
+    const { pageNumber: currentPageNumber } = this.state
+    this.setState({
+      pageNumber: undefined
+    })
+    await this.navigateToPage(currentPageNumber)
+  }
+
+  toggleSelectImage(imageId) {
+    const { selectedImageIds } = this.state
+    const index = selectedImageIds.indexOf(imageId)
+    if (index === -1) {
+      this.setState({
+        selectedImageIds: [...selectedImageIds, imageId]
+      })
+    } else {
+      const newSelectedImageIds = selectedImageIds.slice()
+      newSelectedImageIds.splice(index, 1)
+      this.setState({
+        selectedImageIds: newSelectedImageIds
+      })
+    }
+  }
+
+  async deleteSelectedImages() {
+    const { deleteImages } = this.props
+    const { selectedImageIds } = this.state
+    await deleteImages(selectedImageIds)
+    this.refreshCurrentPage()
+  }
+
   render() {
     const { getUrlFromImageId } = this.props
-    const { pageNumber, imageIds, totalPages } = this.state
+    const {
+      pageNumber, imageIds, totalPages, selectedImageIds
+    } = this.state
 
     const prevPageButton = (
       <button type="button" onClick={() => this.navigateToPage(pageNumber - 1)}>Previous</button>
@@ -53,10 +90,20 @@ class ImageGallery extends React.Component {
     return (
       <>
         <h1>Hello</h1>
+        <div className="ImageGalleryToolbar">
+          {selectedImageIds.length > 0 && (
+            <div>
+              <button type="button" onClick={() => this.deleteSelectedImages()}>Delete</button>
+            </div>
+          )}
+        </div>
         {imageIds.map(imageId => {
           const url = getUrlFromImageId(imageId)
           return (
-            <ImageGalleryItem key={imageId} url={url} />
+            <ImageGalleryItem key={imageId}
+                              url={url}
+                              isHighlighted={selectedImageIds.includes(imageId)}
+                              onClick={() => this.toggleSelectImage(imageId)} />
           )
         })}
         <div className="pagination">
@@ -73,6 +120,7 @@ ImageGallery.propTypes = {
   getImageIds: PropTypes.func.isRequired,
   getImagesCount: PropTypes.func.isRequired,
   getUrlFromImageId: PropTypes.func.isRequired,
+  deleteImages: PropTypes.func.isRequired,
   pageSize: PropTypes.number,
 }
 

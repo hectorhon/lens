@@ -3,19 +3,24 @@ import PropTypes from 'prop-types'
 
 class ImageGalleryItem extends React.Component {
   render() {
-    const { url } = this.props
+    const { url, isHighlighted, onClick } = this.props
     return (
-      <img src={url}
-           alt=""
-           width="300px"
-           height="300px"
-           style={{ objectFit: 'contain' }} />
+      <div className={'ImageGalleryItem-Border ' + (isHighlighted && 'ImageGalleryItem-Border_highlighted')}
+           onClick={onClick}>
+        <img src={url}
+             alt=""
+             width="300px"
+             height="300px"
+             style={{ objectFit: 'contain' }} />
+      </div>
     )
   }
 }
 
 ImageGalleryItem.propTypes = {
   url: PropTypes.string.isRequired,
+  isHighlighted: PropTypes.bool.isRequired,
+  onClick: PropTypes.func.isRequired,
 }
 
 export default ImageGalleryItem

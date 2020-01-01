@@ -12,10 +12,22 @@ async function getImagesCount() {
   return res.json()
 }
 
+async function deleteImages(imageIds) {
+  const res = await fetch('/api/image-list-delete', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(imageIds),
+  })
+  return res.json()
+}
+
 ReactDOM.render(
   <ImageGallery getImageIds={getImageIds}
                 getImagesCount={getImagesCount}
                 getUrlFromImageId={imageId => `/images/${imageId}`}
-                pageSize={3} />,
+                deleteImages={deleteImages}
+                pageSize={8} />,
   document.getElementById('root')
 )

@@ -14,3 +14,16 @@ table {
 th, td {
     border: 1px solid black;
 }
+
+.ImageGalleryToolbar {
+    min-height: 3em;
+}
+
+.ImageGalleryItem-Border {
+    display: inline-block;
+    border: 2px solid transparent;
+}
+
+.ImageGalleryItem-Border_highlighted {
+    border: 2px solid red;
+}

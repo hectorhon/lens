@@ -26,15 +26,15 @@ router.get('/image-gallery', (req, res) => {
   res.render('image-gallery')
 })
 
-const allImageIds = [
-  'rose.jpg',
-  'rose_bRgo3sA.jpg',
-  'ros.jpeg',
-  'hand.jpeg',
-  'eye.jpg',
-  'pinkrose.jpg',
-  'cat.jpeg',
-  'camera.png',
+let allImageIds = [
+  '1.jpg',
+  '2.jpg',
+  '3.jpg',
+  '4.jpg',
+  '5.jpg',
+  '6.jpg',
+  '7.jpg',
+  '8.jpg',
 ]
 
 // Get image ids using limit and offset
@@ -77,6 +77,15 @@ router.get('/api/image-list', (req, res) => {
 // Get total image-list count
 router.get('/api/image-list-count', (req, res) => {
   res.json(allImageIds.length)
+})
+
+// Delete images by ids
+router.post('/api/image-list-delete', (req, res) => {
+  const imageIdsToDelete = req.body
+  allImageIds = allImageIds.filter(id => !imageIdsToDelete.includes(id))
+  res.json({
+    newImageCount: allImageIds.length
+  })
 })
 
 router.get('/table', (req, res) => {

@@ -16,7 +16,8 @@ module.exports = {
   },
   rules: {
     'semi': ['error', 'never'],
-    'comma-dangle': 'off'
+    'comma-dangle': 'off',
+    'arrow-parens': ['error', 'as-needed'],
   },
   settings: {
     'import/resolver': {
