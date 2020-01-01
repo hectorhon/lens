@@ -1,26 +1,42 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
+import ImageGalleryItem from './image-gallery-item'
+
 class ImageGallery extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      pageNumber: 1,
+      pageNumber: undefined,
       imageIds: [],
       totalPages: 1,
     }
   }
 
   async componentDidMount() {
-    const { pageNumber } = this.state
-    await this.navigateToPage(pageNumber)
+    await this.navigateToPage(1)
   }
 
-  async navigateToPage(pageNumber) {
-    const { pageSize, getImageIds } = this.props
-    const { imageIds, totalPages } = await getImageIds(pageSize, pageNumber)
+  async navigateToPage(newPageNumber) {
+    const { pageSize, getImageIds, getImagesCount } = this.props
+    const { pageNumber, imageIds } = this.state
+
+    let getImageIdsPromise
+    if (newPageNumber > pageNumber || pageNumber === undefined) {
+      const fromId = imageIds[pageSize - 1]
+      getImageIdsPromise = getImageIds(fromId, pageSize)
+    } else {
+      const fromId = imageIds[0]
+      getImageIdsPromise = getImageIds(fromId, -pageSize)
+    }
+
+    const [newImageIds, imagesCount] = await Promise.all([getImageIdsPromise, getImagesCount()])
+    const totalPages = Math.ceil(imagesCount / pageSize)
+
     this.setState({
-      imageIds, totalPages, pageNumber
+      imageIds: newImageIds,
+      totalPages,
+      pageNumber: newPageNumber,
     })
   }
 
@@ -40,12 +56,7 @@ class ImageGallery extends React.Component {
         {imageIds.map(imageId => {
           const url = getUrlFromImageId(imageId)
           return (
-            <img key={imageId}
-                 src={url}
-                 alt=""
-                 width="300px"
-                 height="300px"
-                 style={{ objectFit: 'contain' }} />
+            <ImageGalleryItem key={imageId} url={url} />
           )
         })}
         <div className="pagination">
@@ -60,6 +71,7 @@ class ImageGallery extends React.Component {
 
 ImageGallery.propTypes = {
   getImageIds: PropTypes.func.isRequired,
+  getImagesCount: PropTypes.func.isRequired,
   getUrlFromImageId: PropTypes.func.isRequired,
   pageSize: PropTypes.number,
 }

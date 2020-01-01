@@ -3,7 +3,11 @@ const express = require('express')
 function asIntegerOrDefault(str, defaultNumber) {
   const n = Number(str)
   if (!Number.isInteger(n)) {
-    return defaultNumber
+    if (str.trim()[0] === '-') {
+      return -defaultNumber
+    } else {
+      return defaultNumber
+    }
   }
   return n
 }
@@ -22,24 +26,57 @@ router.get('/image-gallery', (req, res) => {
   res.render('image-gallery')
 })
 
+const allImageIds = [
+  'rose.jpg',
+  'rose_bRgo3sA.jpg',
+  'ros.jpeg',
+  'hand.jpeg',
+  'eye.jpg',
+  'pinkrose.jpg',
+  'cat.jpeg',
+  'camera.png',
+]
+
+// Get image ids using limit and offset
+// router.get('/api/image-list', (req, res) => {
+//   const pageNumber = asIntegerOrDefault(req.query.pageNumber, 1)
+//   const pageSize = asIntegerOrDefault(req.query.pageSize, 2)
+//   const offset = (pageNumber - 1) * pageSize
+//   const limit = pageSize
+//   res.json({
+//     imageIds: allImageIds.slice(offset, offset + limit),
+//     totalPages: Math.ceil(allImageIds.length / pageSize),
+//   })
+// })
+
+// Get image ids using fromId and count
 router.get('/api/image-list', (req, res) => {
-  const allImageIds = [
-    'rose.jpeg',
-    'ros.jpeg',
-    'hand.jpeg',
-    'eye.jpg',
-    'pinkrose.jpg',
-    'cat.jpeg',
-    'camera.png',
-  ]
-  const pageNumber = asIntegerOrDefault(req.query.pageNumber, 1)
-  const pageSize = asIntegerOrDefault(req.query.pageSize, 2)
-  const offset = (pageNumber - 1) * pageSize
-  const limit = pageSize
-  res.json({
-    imageIds: allImageIds.slice(offset, offset + limit),
-    totalPages: Math.ceil(allImageIds.length / pageSize),
-  })
+  const { fromId } = req.query
+  const count = asIntegerOrDefault(req.query.count, 5)
+
+  if (fromId === 'undefined' || fromId === undefined) {
+    res.json(allImageIds.slice(0, count))
+    return
+  }
+
+  const index = allImageIds.indexOf(fromId)
+  if (index === -1) {
+    res.json([])
+    return
+  }
+
+  if (count > 0) {
+    res.json(allImageIds.slice(index + 1, index + 1 + count))
+  } else if (count < 0) {
+    res.json(allImageIds.slice(index - (-count), index))
+  } else {
+    res.json([])
+  }
+})
+
+// Get total image-list count
+router.get('/api/image-list-count', (req, res) => {
+  res.json(allImageIds.length)
 })
 
 router.get('/table', (req, res) => {
