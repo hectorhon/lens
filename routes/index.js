@@ -22,17 +22,18 @@ router.get('/image-gallery', (req, res) => {
   res.render('image-gallery')
 })
 
+let allImageIds = [
+  '1.jpg',
+  '2.jpg',
+  '3.jpg',
+  '4.jpg',
+  '5.jpg',
+  '6.jpg',
+  '7.jpg',
+  '8.jpg',
+]
+
 router.get('/api/image-list', (req, res) => {
-  const allImageIds = [
-    '1.jpg',
-    '2.jpg',
-    '3.jpg',
-    '4.jpg',
-    '5.jpg',
-    '6.jpg',
-    '7.jpg',
-    '8.jpg',
-  ]
   const pageNumber = asIntegerOrDefault(req.query.pageNumber, 1)
   const pageSize = asIntegerOrDefault(req.query.pageSize, 2)
   const offset = (pageNumber - 1) * pageSize
@@ -40,6 +41,14 @@ router.get('/api/image-list', (req, res) => {
   res.json({
     imageIds: allImageIds.slice(offset, offset + limit),
     totalPages: Math.ceil(allImageIds.length / pageSize),
+  })
+})
+
+router.post('/api/image-list/delete', (req, res) => {
+  const imageIdsToDelete = req.body
+  allImageIds = allImageIds.filter(id => !imageIdsToDelete.includes(id))
+  res.json({
+    newImagesCount: allImageIds.length
   })
 })
 

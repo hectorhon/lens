@@ -40,6 +40,12 @@ class ImageGallery extends React.Component {
     })
   }
 
+  async deleteSelectedImages() {
+    const { deleteImageIds } = this.props
+    const { selectedImageIds } = this.state
+    await deleteImageIds(selectedImageIds)
+  }
+
   render() {
     const { getUrlFromImageId } = this.props
     const {
@@ -55,6 +61,13 @@ class ImageGallery extends React.Component {
     return (
       <>
         <h1>Hello</h1>
+        <div>
+          <button type="button"
+                  disabled={selectedImageIds.length === 0}
+                  onClick={() => this.deleteSelectedImages()}>
+            Delete
+          </button>
+        </div>
         {imageIds.map(imageId => {
           const url = getUrlFromImageId(imageId)
           return (
@@ -77,6 +90,7 @@ class ImageGallery extends React.Component {
 ImageGallery.propTypes = {
   getImageIds: PropTypes.func.isRequired,
   getUrlFromImageId: PropTypes.func.isRequired,
+  deleteImageIds: PropTypes.func.isRequired,
   pageSize: PropTypes.number,
 }
 
