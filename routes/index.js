@@ -46,9 +46,25 @@ router.get('/api/image-list', (req, res) => {
 
 router.post('/api/image-list/delete', (req, res) => {
   const imageIdsToDelete = req.body
+
+  // Determine new page number if bookmark is given
+  // The new page number is the page containing the image just before the bookmark
+  const { bookmark: bookmarkImageId, pageSize } = req.query
+  let newPageNumber
+  if (bookmarkImageId && pageSize) {
+    const otherImageIdsToDelete = imageIdsToDelete.filter(id => id !== bookmarkImageId)
+    const index = allImageIds
+      .filter(id => !otherImageIdsToDelete.includes(id))
+      .indexOf(bookmarkImageId)
+    newPageNumber = Math.floor(index / pageSize) + 1
+  }
+
+  // Perform the deletion
   allImageIds = allImageIds.filter(id => !imageIdsToDelete.includes(id))
+
   res.json({
-    newImagesCount: allImageIds.length
+    newImagesCount: allImageIds.length,
+    newPageNumber,
   })
 })
 

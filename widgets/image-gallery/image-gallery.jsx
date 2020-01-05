@@ -41,9 +41,11 @@ class ImageGallery extends React.Component {
   }
 
   async deleteSelectedImages() {
-    const { deleteImageIds } = this.props
-    const { selectedImageIds } = this.state
-    await deleteImageIds(selectedImageIds)
+    const { deleteImageIds, pageSize } = this.props
+    const { selectedImageIds, imageIds } = this.state
+    const bookmarkImageId = imageIds[0]
+    const { newPageNumber } = await deleteImageIds(selectedImageIds, bookmarkImageId, pageSize)
+    await this.navigateToPage(newPageNumber)
   }
 
   render() {

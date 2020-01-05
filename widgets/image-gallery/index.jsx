@@ -7,8 +7,12 @@ async function getImageIds(pageSize, pageNumber) {
   return res.json()
 }
 
-async function deleteImageIds(imageIds) {
-  const res = await fetch('/api/image-list/delete', {
+async function deleteImageIds(imageIds, bookmarkImageId, pageSize) {
+  let url = '/api/image-list/delete'
+  if (bookmarkImageId && pageSize) {
+    url += `?bookmark=${bookmarkImageId}&pageSize=${pageSize}`
+  }
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
