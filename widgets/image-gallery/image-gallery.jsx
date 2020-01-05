@@ -10,6 +10,7 @@ class ImageGallery extends React.Component {
       pageNumber: 1,
       imageIds: [],
       totalPages: 1,
+      selectedImageIds: [],
     }
   }
 
@@ -26,9 +27,24 @@ class ImageGallery extends React.Component {
     })
   }
 
+  toggleSelectImage(imageId) {
+    const { selectedImageIds } = this.state
+    let newSelectedImageIds = selectedImageIds.slice()
+    if (selectedImageIds.includes(imageId)) {
+      newSelectedImageIds = newSelectedImageIds.filter(id => id !== imageId)
+    } else {
+      newSelectedImageIds.push(imageId)
+    }
+    this.setState({
+      selectedImageIds: newSelectedImageIds
+    })
+  }
+
   render() {
     const { getUrlFromImageId } = this.props
-    const { pageNumber, imageIds, totalPages } = this.state
+    const {
+      pageNumber, imageIds, totalPages, selectedImageIds
+    } = this.state
 
     const prevPageButton = (
       <button type="button" onClick={() => this.navigateToPage(pageNumber - 1)}>Previous</button>
@@ -43,7 +59,9 @@ class ImageGallery extends React.Component {
           const url = getUrlFromImageId(imageId)
           return (
             <ImageGalleryItem key={imageId}
-                              url={url} />
+                              url={url}
+                              isHighlighted={selectedImageIds.includes(imageId)}
+                              onClick={() => this.toggleSelectImage(imageId)} />
           )
         })}
         <div className="pagination">
