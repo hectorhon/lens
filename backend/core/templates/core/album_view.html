@@ -18,8 +18,26 @@
     </div>
   </div>
 
+  <p>
+    {% if images.has_previous %}
+      <span>
+        <a href="?page={{ images.previous_page_number }}">Previous</a>
+      </span>
+    {% endif %}
+
+    <span>Page {{ images.number }}</span>
+
+    {% if images.has_next %}
+      <span>
+        <a href="?page={{ images.next_page_number }}">Next</a>
+      </span>
+    {% endif %}
+  </p>
+
+  <p>Items {{ images.start_index }} - {{ images.end_index }} of {{ images.paginator.count }}</p>
+
   <div class="row my-3">
-    {% for image in album.image_set.all %}
+    {% for image in images %}
       <div class="col-md-3">
         <img src="{{ image.original.url }}"
              class="album-image"

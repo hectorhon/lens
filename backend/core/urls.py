@@ -30,7 +30,7 @@ urlpatterns = [
          views.album_create_form,
          name='album_create_form'),
 
-    path('albums/view',
+    path('albums/view/<uuid:album_id>',
          views.album_view,
          name='album_view'),
 ]

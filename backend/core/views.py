@@ -90,11 +90,18 @@ def album_create_form(request):
     })
 
 
-def album_view(request):
-    album_id = request.GET.get('id')
+def album_view(request, album_id):
     album = Album.objects.get(pk=album_id)
+
+    page_number = int(request.GET.get('page', 1))
+    images = album.image_set.all()
+    limit = 8
+    paginator = Paginator(images, limit)
+    image_list = paginator.get_page(page_number)
+
     return render(request, 'core/album_view.html', {
         'title': album.name,
         'subtitle': 'Album',
         'album': album,
+        'images': image_list,
     })
