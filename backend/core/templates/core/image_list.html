@@ -25,7 +25,7 @@
   <p>Items {{ images.start_index }} - {{ images.end_index }} of {{ images.paginator.count }}</p>
 
   {% for image in images %}
-    <img src="{{ image.original.url }}"
+    <img src="{% url 'core:image_api_get' image.id %}"
          width="300px"
          height="300px"
          style="object-fit: contain;" />

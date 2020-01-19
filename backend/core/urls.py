@@ -22,6 +22,10 @@ urlpatterns = [
          views.image_api_delete,
          name='image_api_delete'),
 
+    path('images/api/get/<uuid:image_id>',
+         views.image_api_get,
+         name='image_api_get'),
+
     path('albums',
          views.album_list,
          name='album_list'),

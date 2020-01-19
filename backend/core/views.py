@@ -1,7 +1,12 @@
-from django.http import JsonResponse
+import mimetypes
+import os
+
+from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.core.files.images import ImageFile
+from django.conf import settings
+from django.views import static
 
 from .models import Image, Album
 from .forms import ImageUploadForm, AlbumCreateForm
@@ -64,6 +69,18 @@ def image_api_delete(request):
     return JsonResponse({
         'deleteCount': deleteCount
     })
+
+
+def image_api_get(request, image_id):
+    image = Image.objects.get(pk=image_id)
+    filename = image.original.name
+    if os.environ.get('DJANGO_SETTINGS_MODULE') == 'backend.settings_wsgi':
+        response = HttpResponse()
+        response['X-SendFile'] = f'../uploads/{filename}'
+        response['Content-Type'] = mimetypes.guess_type(filename)[0]
+        return response
+    else:
+        return static.serve(request, filename, settings.MEDIA_ROOT)
 
 
 def album_list(request):
