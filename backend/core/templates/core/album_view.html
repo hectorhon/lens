@@ -39,7 +39,7 @@
   <div class="row my-3">
     {% for image in images %}
       <div class="col-md-3">
-        <img src="{{ image.original.url }}"
+        <img src="{% url 'core:image_api_thumbnail' image.id %}"
              class="album-image"
              data-image-id="{{ image.id }}"
              width="300px"

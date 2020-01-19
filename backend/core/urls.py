@@ -26,6 +26,10 @@ urlpatterns = [
          views.image_api_get,
          name='image_api_get'),
 
+    path('images/api/thumbnail/<uuid:image_id>',
+         views.image_api_thumbnail,
+         name='image_api_thumbnail'),
+
     path('albums',
          views.album_list,
          name='album_list'),

@@ -1,6 +1,8 @@
 import mimetypes
 import os
 
+import PIL
+
 from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
@@ -74,6 +76,46 @@ def image_api_delete(request):
 def image_api_get(request, image_id):
     image = Image.objects.get(pk=image_id)
     filename = image.original.name
+    if os.environ.get('DJANGO_SETTINGS_MODULE') == 'backend.settings_wsgi':
+        response = HttpResponse()
+        response['X-SendFile'] = f'../uploads/{filename}'
+        response['Content-Type'] = mimetypes.guess_type(filename)[0]
+        return response
+    else:
+        return static.serve(request, filename, settings.MEDIA_ROOT)
+
+
+def image_api_thumbnail(request, image_id):
+    image = Image.objects.get(pk=image_id)
+
+    thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'thumbnails')
+    # Ensure directories exist - this should probably be in the setup
+    # file because need to set permissions for www-data
+    # os.makedirs(thumbnail_dir, exist_ok=True)
+
+    if not image.thumbnail:
+        pil_image = PIL.Image.open(image.original.path)
+
+        # .thumbnail edits images in place, so make a copy
+        # https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.thumbnail
+        pil_image_copy = pil_image.copy()
+        pil_image_copy.thumbnail((400, 400))
+        thumbnail_filename = f'{image.original.name}.thumbnail.jpg'
+
+        thumbnail_path = os.path.join(thumbnail_dir, thumbnail_filename)
+        try:
+            pil_image_copy.save(thumbnail_path, 'jpeg')
+        except PermissionError as e:
+            # Manual intervention required; log the exception and continue
+            # Can happen if the database thumbnail field is cleared but the file isn't deleted
+            print(e)
+            pass
+
+        # Update database row
+        image.thumbnail = os.path.relpath(thumbnail_path, settings.MEDIA_ROOT)
+        image.save()
+
+    filename = image.thumbnail.name
     if os.environ.get('DJANGO_SETTINGS_MODULE') == 'backend.settings_wsgi':
         response = HttpResponse()
         response['X-SendFile'] = f'../uploads/{filename}'

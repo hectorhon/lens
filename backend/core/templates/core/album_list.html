@@ -30,7 +30,7 @@
     {% for album in albums %}
       <tr>
         <td>
-          <a href="{% url 'core:album_view' %}?id={{ album.id }}">
+          <a href="{% url 'core:album_view' album.id %}">
             {{ album.name }}
           </a>
         </td>

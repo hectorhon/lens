@@ -133,7 +133,7 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_URL = '/uploads/'
-MEDIA_ROOT = 'data/uploads/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'data/uploads/')
 
 
 LOGGING = {
