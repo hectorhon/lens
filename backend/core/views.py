@@ -67,7 +67,20 @@ def image_upload_form(request):
 
 def image_api_delete(request):
     image_ids = request.POST.getlist('selectedImageIds[]')
-    deleteCount, _ = Image.objects.filter(pk__in=image_ids).delete()
+    images = Image.objects.filter(pk__in=image_ids)
+
+    # Files to delete
+    originals = [image.original.path for image in images]
+    thumbnails = [image.thumbnail.path for image in images if image.thumbnail]
+
+    deleteCount, _ = images.delete()
+
+    # Delete the files
+    for original in originals:
+        os.remove(original)
+    for thumbnail in thumbnails:
+        os.remove(thumbnail)
+
     return JsonResponse({
         'deleteCount': deleteCount
     })
