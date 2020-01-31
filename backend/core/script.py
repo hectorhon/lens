@@ -59,6 +59,8 @@ def run(rootpath):
     for file in files:
         print(file.image_date, file.fullpath)
 
+    files = files[0:10]
+
     for file in files:
         src = file.fullpath
         id = uuid.uuid4()
