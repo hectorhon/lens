@@ -25,3 +25,12 @@ replaced with replacement."
 (defun trim-whitespace (string)
   "Returns a new string with whitespace trimmed from both ends of the string."
   (string-trim +whitespace-characters+ string))
+
+(defun split-string-by (character string)
+  "Returns a list of substrings of string divided by 'character. Note:
+Two consecutive 'character s will be seen as if there were an empty
+string between them."
+  (loop :for i = 0 :then (1+ j)
+     :as j = (position character string :start i)
+     :collect (subseq string i j)
+     :while j))

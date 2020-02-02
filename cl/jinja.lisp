@@ -74,7 +74,8 @@
 (defun parse-expression (tokens)
   (let ((token (car tokens)))
     (if (eq 'expression-token (type-of token))
-        (values (make-instance 'expression :accessor (contents token))
+        (values (let ((accessor (split-string-by #\. (contents token))))
+                  (make-instance 'expression :accessor accessor))
                 (cdr tokens))
         (error 'parse-failure))))
 
@@ -104,10 +105,19 @@
   (write-string (str literal) stream))
 
 (defmethod render-element ((expression expression) stream context)
-  (let ((value (get-context-variable context (accessor expression))))
-    (if value
-        (format stream "~a" value)
-        (write-string "<undefined>" stream))))
+  (with-slots (accessor) expression
+    (let* ((key
+            (car accessor))
+           (target-context-variable
+            (get-context-variable context key))
+           (value
+            (loop :with value = target-context-variable
+               :for accessor-part :in (cdr accessor)
+               :do (setf value (funcall (intern (string-uppercase accessor-part)) value))
+               :finally (return value))))
+      (if value
+          (format stream "~a" value)
+          (write-string "<undefined>" stream)))))
 
 (defun render (template-string context)
   (let* ((tokens (tokenize template-string))
@@ -136,3 +146,11 @@
       (expect-equals
        "abcdef a string"
        (render "abcdef {{ var }}" context))))
+
+(define-test "Render template with variable having CLOS object. Syntax: {{ object.slot-accessor }}"
+    (let ((context (make-instance 'context)))
+      (set-context-variable context "object"
+                            (make-instance 'token :contents "a slot value"))
+      (expect-equals
+       "abcdef a slot value xyz"
+       (render "abcdef {{ object.contents }} xyz" context))))
