@@ -34,3 +34,6 @@ string between them."
      :as j = (position character string :start i)
      :collect (subseq string i j)
      :while j))
+
+(defun empty-string-p (string)
+  (eql 0 (length string)))

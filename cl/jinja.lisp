@@ -60,7 +60,8 @@
   ((str :initarg :str :reader str)))
 
 (defclass expression (element)
-  ((accessor :initarg :accessor :reader accessor)))
+  ((accessor :initarg :accessor :reader accessor)
+   (filters :initarg :filters :reader filters)))
 
 (define-condition parse-failure (error) ())
 
@@ -74,8 +75,18 @@
 (defun parse-expression (tokens)
   (let ((token (car tokens)))
     (if (eq 'expression-token (type-of token))
-        (values (let ((accessor (split-string-by #\. (contents token))))
-                  (make-instance 'expression :accessor accessor))
+        (values (with-slots (contents) token
+                  (destructuring-bind (accessor &rest filters)
+                      (split-string-by #\| contents)
+                    (make-instance 'expression
+                                   :accessor (split-string-by #\. (trim-whitespace accessor))
+                                   :filters (mapcar (lambda (raw-filter-string)
+                                                      (make-instance
+                                                       (intern (string-uppercase
+                                                                (concatenate 'string
+                                                                             (trim-whitespace raw-filter-string)
+                                                                             "-filter")))))
+                                                    filters))))
                 (cdr tokens))
         (error 'parse-failure))))
 
@@ -98,6 +109,27 @@
 
 
 
+(defclass filter () ())
+
+(defclass capitalize-filter (filter) ())
+(defclass upper-filter (filter) ())
+
+(defgeneric apply-filter (filter input-value))
+
+(defmethod apply-filter ((filter capitalize-filter) input-value)
+  "Capitalize a value. The first character will be uppercase, all
+others lowercase."
+  (let ((str (string-lowercase input-value)))
+    (unless (empty-string-p str)
+      (setf (elt str 0) (char-upcase (elt str 0))))
+    str))
+
+(defmethod apply-filter ((filter upper-filter) input-value)
+  "Convert a value to uppercase."
+  (string-uppercase input-value))
+
+
+
 (defgeneric render-element (element stream context)
   (:documentation "Render the element in the given context."))
 
@@ -105,7 +137,7 @@
   (write-string (str literal) stream))
 
 (defmethod render-element ((expression expression) stream context)
-  (with-slots (accessor) expression
+  (with-slots (accessor filters) expression
     (let* ((key
             (car accessor))
            (target-context-variable
@@ -114,9 +146,14 @@
             (loop :with value = target-context-variable
                :for accessor-part :in (cdr accessor)
                :do (setf value (funcall (intern (string-uppercase accessor-part)) value))
-               :finally (return value))))
-      (if value
-          (format stream "~a" value)
+               :finally (return value)))
+           (value-after-filter
+            (loop :with value-after-filter = value
+               :for filter :in filters
+               :do (setf value-after-filter (apply-filter filter value-after-filter))
+               :finally (return value-after-filter))))
+      (if value-after-filter
+          (format stream "~a" value-after-filter)
           (write-string "<undefined>" stream)))))
 
 (defun render (template-string context)
@@ -154,3 +191,19 @@
       (expect-equals
        "abcdef a slot value xyz"
        (render "abcdef {{ object.contents }} xyz" context))))
+
+(define-test "Render template with a filter. Syntax: {{ object.slot-accessor | upper }}"
+    (let ((context (make-instance 'context)))
+      (set-context-variable context "object"
+                            (make-instance 'token :contents "a slot value"))
+      (expect-equals
+       "abcdef A SLOT VALUE xyz"
+       (render "abcdef {{ object.contents |upper }} xyz" context))))
+
+(define-test "Render template with multiple filters. Syntax: {{ object.slot-accessor | upper | capitalize }}"
+    (let ((context (make-instance 'context)))
+      (set-context-variable context "object"
+                            (make-instance 'token :contents "a slot value"))
+      (expect-equals
+       "abcdef A slot value xyz"
+       (render "abcdef {{ object.contents| upper| capitalize}} xyz" context))))
