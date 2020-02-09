@@ -1,6 +1,8 @@
 (defsystem "lens"
   :depends-on ("cl-ppcre")
-  :components ((:file "common")
+  :components ((:file "package")
+               (:file "common")
                (:file "string")
                (:file "test")
-               (:file "jinja")))
+               (:file "jinja")
+               (:file "server")))

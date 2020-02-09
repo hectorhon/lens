@@ -1,3 +1,5 @@
+(in-package #:test)
+
 (defvar *skip-tests* nil)
 
 (define-condition test-failure (error)

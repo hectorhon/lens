@@ -1,5 +1,4 @@
-(load "string.lisp")
-(load "test.lisp")
+(in-package #:jinja)
 
 (defclass context ()
   ((variables :initform (make-hash-table :test 'equal)
