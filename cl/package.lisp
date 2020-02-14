@@ -1,42 +1,72 @@
-(defpackage #:common
+(defpackage #:lens-common
   (:use #:common-lisp)
-  (:export define-constant
-           random-bytes
-           gt
-           lt))
+  (:export #:define-constant
+           #:get-symbol-home-package
+           #:random-bytes
+           #:gt
+           #:lt))
 
-(defpackage #:string
-  (:use #:common-lisp
-        #:common)
-  (:export replace-all
-           string-lowercase
-           string-uppercase
-           +whitespace-characters+
-           trim-whitespace
-           split-string-by
-           empty-string-p
-           random-hex-string
-           string-ends-with-p
-           +crlf+))
+(defpackage #:lens-test
+  (:use #:common-lisp)
+  (:export #:define-test
+           #:expect-equals))
 
-(defpackage #:test
-  (:use #:common-lisp
-        #:string)
-  (:export define-test
-           expect-equals))
+(defpackage #:lens-string
+  (:use #:common-lisp)
+  (:import-from #:lens-common
+                #:define-constant
+                #:random-bytes)
+  (:export #:replace-all
+           #:+whitespace-characters+
+           #:trim-whitespace
+           #:split
+           #:empty-string-p
+           #:random-hex-string
+           #:string-ends-with-p
+           #:+crlf+))
 
-(defpackage #:jinja
-  (:use #:common-lisp
-        #:string
-        #:test))
+(defpackage #:lens-stream
+  (:use #:common-lisp)
+  (:import-from #:lens-common
+                gt)
+  (:import-from #:lens-string
+                #:+crlf+)
+  (:export #:read-until-string
+           #:read-until-crlf))
 
-(defpackage #:server
-  (:use #:common-lisp
-        #:sb-bsd-sockets
-        #:sb-thread
-        #:sb-ext
-        #:common
-        #:string)
-  (:export run
-           run-background
-           stop-background))
+(defpackage #:lens-jinja
+  (:use #:common-lisp)
+  (:import-from #:lens-test
+                #:define-test
+                #:expect-equals)
+  (:import-from #:lens-string
+                #:trim-whitespace
+                #:split
+                #:empty-string-p))
+
+(defpackage #:lens-server
+  (:use #:common-lisp)
+  (:import-from #:sb-thread
+                #:make-thread
+                #:terminate-thread
+                #:thread-alive-p)
+  (:import-from #:sb-bsd-sockets
+                #:inet-socket
+                #:sockopt-reuse-address
+                #:socket-bind
+                #:make-inet-address
+                #:socket-listen
+                #:socket-accept
+                #:socket-close
+                #:socket-make-stream)
+  (:import-from #:lens-common
+                #:gt)
+  (:import-from #:lens-string
+                #:random-hex-string
+                #:empty-string-p
+                #:+crlf+)
+  (:import-from #:lens-stream
+                #:read-until-crlf)
+  (:export #:start
+           #:start-background
+           #:stop-background))

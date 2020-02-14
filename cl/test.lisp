@@ -1,4 +1,4 @@
-(in-package #:test)
+(in-package #:lens-test)
 
 (defvar *skip-tests* nil)
 
@@ -20,11 +20,11 @@
     (call-next-method)))
 
 (defmacro define-test (test-name &rest body)
-  (let ((function-name (intern
-                        (string-uppercase
-                         (replace-all
-                          (concatenate 'string "test-" test-name)
-                          " " "-"))))
+  (let ((function-name
+         (intern (nstring-upcase
+                  (funcall 'lens-string:replace-all
+                           (concatenate 'string "test-" test-name)
+                           " " "-"))))
         (doc-string (concatenate 'string "TEST: " test-name)))
     `(progn (defun ,function-name ()
               ,doc-string

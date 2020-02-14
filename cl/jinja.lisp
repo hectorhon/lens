@@ -1,4 +1,4 @@
-(in-package #:jinja)
+(in-package #:lens-jinja)
 
 (defclass context ()
   ((variables :initform (make-hash-table :test 'equal)
@@ -76,12 +76,12 @@
     (if (eq 'expression-token (type-of token))
         (values (with-slots (contents) token
                   (destructuring-bind (accessor &rest filters)
-                      (split-string-by #\| contents)
+                      (split #\| contents)
                     (make-instance 'expression
-                                   :accessor (split-string-by #\. (trim-whitespace accessor))
+                                   :accessor (split #\. (trim-whitespace accessor))
                                    :filters (mapcar (lambda (raw-filter-string)
                                                       (make-instance
-                                                       (intern (string-uppercase
+                                                       (intern (string-upcase
                                                                 (concatenate 'string
                                                                              (trim-whitespace raw-filter-string)
                                                                              "-filter")))))
@@ -118,14 +118,14 @@
 (defmethod apply-filter ((filter capitalize-filter) input-value)
   "Capitalize a value. The first character will be uppercase, all
 others lowercase."
-  (let ((str (string-lowercase input-value)))
+  (let ((str (string-downcase input-value)))
     (unless (empty-string-p str)
       (setf (elt str 0) (char-upcase (elt str 0))))
     str))
 
 (defmethod apply-filter ((filter upper-filter) input-value)
   "Convert a value to uppercase."
-  (string-uppercase input-value))
+  (string-upcase input-value))
 
 
 
@@ -144,7 +144,7 @@ others lowercase."
            (value
             (loop :with value = target-context-variable
                :for accessor-part :in (cdr accessor)
-               :do (setf value (funcall (intern (string-uppercase accessor-part)) value))
+               :do (setf value (funcall (intern (string-upcase accessor-part)) value))
                :finally (return value)))
            (value-after-filter
             (loop :with value-after-filter = value

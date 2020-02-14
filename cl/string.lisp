@@ -1,4 +1,4 @@
-(in-package #:string)
+(in-package #:lens-string)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun replace-all (string part replacement &key (test #'char=))
@@ -16,13 +16,6 @@ replaced with replacement."
          when pos do (write-string replacement out)
          while pos))))
 
-(defun string-lowercase (string)
-  (format nil "~(~a~)" string))
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun string-uppercase (string)
-    (format nil "~@:(~a~)" string)))
-
 (define-constant +whitespace-characters+
     (concatenate 'string '(#\Newline) '(#\Return) '(#\Tab) '(#\Space)))
 
@@ -30,7 +23,7 @@ replaced with replacement."
   "Returns a new string with whitespace trimmed from both ends of the string."
   (string-trim +whitespace-characters+ string))
 
-(defun split-string-by (character string)
+(defun split (character string)
   "Returns a list of substrings of string divided by 'character. Note:
 Two consecutive 'character s will be seen as if there were an empty
 string between them."

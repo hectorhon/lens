@@ -1,4 +1,4 @@
-(in-package #:common)
+(in-package #:lens-common)
 
 ;; http://www.sbcl.org/manual/#Defining-Constants
 (defmacro define-constant (name value &optional doc)

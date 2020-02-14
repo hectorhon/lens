@@ -1,4 +1,4 @@
-(in-package #:server)
+(in-package #:lens-server)
 
 (defmacro log-debug (control-string &rest format-arguments)
   `(format *error-output* ,(concatenate 'string control-string "~%") ,@format-arguments))
@@ -7,14 +7,14 @@
 
 (defvar *worker-threads* nil)
 
-(defun run-background ()
-  (setf *accept-thread* (make-thread 'run :name "accept-thread")))
+(defun start-background ()
+  (setf *accept-thread* (make-thread 'start :name "accept-thread")))
 
 (defun stop-background ()
   (terminate-thread *accept-thread*)
   (setf *accept-thread* nil))
 
-(defun run ()
+(defun start ()
   (sb-sys:without-interrupts
     (let ((accept-socket (make-instance 'inet-socket :type :stream :protocol :tcp)))
       (unwind-protect
@@ -27,7 +27,7 @@
                             ;; clean up done worker threads from list
                             (setf *worker-threads* (delete-if-not #'thread-alive-p *worker-threads*))
                             (push (make-thread 'handle-client-socket
-                                               :name (format nil "worker-thread-~a" (string:random-hex-string 3))
+                                               :name (format nil "worker-thread-~a" (random-hex-string 3))
                                                :arguments (list client-socket client-address client-port))
                                   *worker-threads*)))))
         (progn (log-debug "Terminating worker threads")
@@ -60,20 +60,6 @@
    (headers :initarg :headers :reader headers)
    (body :initarg :body :reader body)))
 
-(defun read-until-string (delimiter stream)
-  (with-output-to-string (output-stream)
-    (loop :with counter = 0
-       :until (eql (length delimiter) counter)
-       :for next-char = (read-char stream)
-       :do (if (eql next-char (char delimiter counter))
-               (incf counter)
-               (progn (if (gt 0 counter)
-                          (write-string (subseq delimiter 0 counter) output-stream))
-                      (write-char next-char output-stream)
-                      (setf counter 0))))))
-
-(defmacro read-until-crlf (stream)
-  `(read-until-string +crlf+ ,stream))
 
 (defun process-client-stream (client-stream client-address client-port)
   (declare (ignore client-address client-port))
@@ -90,7 +76,7 @@
                  (aref request-line-matches 2))
                 (headers
                  (loop :for header-line = (read-until-crlf client-stream)
-                    :unless (string:empty-string-p header-line)
+                    :unless (empty-string-p header-line)
                     :collect (cl-ppcre:register-groups-bind (header-name header-value) ("(.*?) *: *(.*)" header-line)
                                (log-debug "~a: ~a" header-name header-value)
                                (make-instance 'http-header :name header-name :value header-value)) :into headers
