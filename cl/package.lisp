@@ -4,18 +4,20 @@
            #:get-symbol-home-package
            #:random-bytes
            #:gt
-           #:lt))
+           #:lt
+           #:get-from
+           #:set-to
+           #:key-not-found
+           #:copy
+           #:for-each-in))
 
 (defpackage #:lens-test
-  (:use #:common-lisp)
+  (:use #:common-lisp #:lens-common)
   (:export #:define-test
            #:expect-equals))
 
 (defpackage #:lens-string
-  (:use #:common-lisp)
-  (:import-from #:lens-common
-                #:define-constant
-                #:random-bytes)
+  (:use #:common-lisp #:lens-common)
   (:export #:replace-all
            #:+whitespace-characters+
            #:trim-whitespace
@@ -26,16 +28,14 @@
            #:+crlf+))
 
 (defpackage #:lens-stream
-  (:use #:common-lisp)
-  (:import-from #:lens-common
-                gt)
+  (:use #:common-lisp #:lens-common)
   (:import-from #:lens-string
                 #:+crlf+)
   (:export #:read-until-string
            #:read-until-crlf))
 
 (defpackage #:lens-jinja
-  (:use #:common-lisp)
+  (:use #:common-lisp #:lens-common)
   (:import-from #:lens-test
                 #:define-test
                 #:expect-equals)
@@ -44,8 +44,13 @@
                 #:split
                 #:empty-string-p))
 
+(defpackage #:lens-http-headers
+  (:use #:common-lisp #:lens-common)
+  (:export #:http-headers               ; for type checking
+           #:make-http-headers))
+
 (defpackage #:lens-server
-  (:use #:common-lisp)
+  (:use #:common-lisp #:lens-common)
   (:import-from #:sb-thread
                 #:make-thread
                 #:terminate-thread
@@ -59,14 +64,15 @@
                 #:socket-accept
                 #:socket-close
                 #:socket-make-stream)
-  (:import-from #:lens-common
-                #:gt)
   (:import-from #:lens-string
                 #:random-hex-string
                 #:empty-string-p
                 #:+crlf+)
   (:import-from #:lens-stream
                 #:read-until-crlf)
+  (:import-from #:lens-http-headers
+                #:http-headers
+                #:make-http-headers)
   (:export #:start
            #:start-background
            #:stop-background))

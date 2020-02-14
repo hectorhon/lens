@@ -1,7 +1,15 @@
 (in-package #:lens-server)
 
-(defmacro log-debug (control-string &rest format-arguments)
-  `(format *error-output* ,(concatenate 'string control-string "~%") ,@format-arguments))
+(defun get-timestamp-string ()
+  (multiple-value-bind (seconds minutes hours day month year day-of-week dst tz) (get-decoded-time)
+    (declare (ignore day-of-week dst tz))
+    (format nil "~4,'0d-~2,'0d-~2,'0d ~2,'0d:~2,'0d:~2,'0d"
+            year month day hours minutes seconds)))
+
+(defun log-debug (control-string &rest format-arguments)
+  (apply 'format *error-output*
+         (concatenate 'string "~a: " control-string "~%")
+         (cons (get-timestamp-string) format-arguments)))
 
 (defvar *accept-thread*)
 
@@ -41,7 +49,7 @@
 (defun handle-client-socket (client-socket client-address client-port)
   (sb-sys:without-interrupts
     (progn (log-debug "Connection from ~a:~a" client-address client-port)
-           (let ((client-socket-stream (socket-make-stream client-socket :element-type :default :input t :output nil)))
+           (let ((client-socket-stream (socket-make-stream client-socket :element-type :default :input t :output t)))
              (unwind-protect
                   (sb-sys:with-local-interrupts
                     (process-client-stream client-socket-stream client-address client-port))
@@ -49,17 +57,50 @@
                       (close client-socket-stream)
                       (socket-close client-socket)))))))
 
-(defclass http-header ()
-  ((name :initarg :name :reader name)
-   (value :initarg :value :reader value)))
-
 (defclass http-request ()
-  ((http-method :initarg :http-method :reader http-method)
-   (uri :initarg :uri :reader uri)
-   (version :initarg :version :reader version)
-   (headers :initarg :headers :reader headers)
-   (body :initarg :body :reader body)))
+  ((http-method :reader http-request-method
+                :initarg :http-method)
+   (uri :reader http-request-uri
+        :initarg :uri)
+   (version :reader http-request-version
+            :initarg :version)
+   (headers :reader http-request-headers
+            :initarg :headers
+            :type http-headers)
+   (body :reader http-request-body
+         :initarg :body)))
 
+(defmethod print-object ((request http-request) stream)
+  (print-unreadable-object (request stream :type t :identity t)
+    (with-slots (http-method uri) request
+      (format stream "~a ~a" http-method uri))))
+
+(defclass http-response ()
+  ((version :reader http-response-version
+            :initarg :version)
+   (status-code :reader http-response-status-code
+                :initarg :status-code)
+   (reason-phrase :reader http-reason-phrase
+                  :initarg :reason-phrase)
+   (headers :reader http-response-headers
+            :initarg :headers
+            :type http-headers)
+   (body :reader http-response-body
+         :initarg :body)))
+
+(defun reason-phrase-lookup (status-code)
+  (ecase status-code
+    (200 "OK")))
+
+(defun create-simple-http-response (status-code headers &optional (body ""))
+  (let ((headers (make-http-headers headers)))
+    (set-to headers "content-length" (length body))
+    (make-instance 'http-response
+                   :version "1.1"
+                   :status-code status-code
+                   :reason-phrase (reason-phrase-lookup status-code)
+                   :headers headers
+                   :body body)))
 
 (defun process-client-stream (client-stream client-address client-port)
   (declare (ignore client-address client-port))
@@ -75,31 +116,46 @@
                 (version
                  (aref request-line-matches 2))
                 (headers
-                 (loop :for header-line = (read-until-crlf client-stream)
+                 (loop :with headers = (make-http-headers)
+                    :for header-line = (read-until-crlf client-stream)
                     :unless (empty-string-p header-line)
-                    :collect (cl-ppcre:register-groups-bind (header-name header-value) ("(.*?) *: *(.*)" header-line)
-                               (log-debug "~a: ~a" header-name header-value)
-                               (make-instance 'http-header :name header-name :value header-value)) :into headers
+                    :do (cl-ppcre:register-groups-bind (header-name header-value) ("(.*?) *: *(.*)" header-line)
+                          (log-debug "~a: ~a" header-name header-value)
+                          (set-to headers header-name header-value))
                     :else :return headers :end))
-                (content-length-header
-                 (find-if (lambda (header) (string-equal "content-length" (name header))) headers))
                 (body
-                 (unless (null content-length-header)
-                   (let* ((content-length
-                           (parse-integer (value content-length-header)))
-                          (body
-                           (make-array content-length :element-type '(unsigned-byte 8))))
-                     (read-sequence body client-stream))))
+                 (multiple-value-bind (content-length-header-value foundp)
+                     (get-from headers "content-length" :throw-if-not-found nil)
+                   (if foundp
+                       (let* ((content-length
+                               (parse-integer content-length-header-value))
+                              (body
+                               (make-array content-length :element-type '(unsigned-byte 8))))
+                         (read-sequence body client-stream)))))
                 (request
                  (make-instance 'http-request
                                 :http-method http-method
                                 :uri uri
                                 :version version
                                 :headers headers
-                                :body body)))
-           (process-request request))))
+                                :body body))
+                (response
+                 (process-request request)))
+           (write-http-response-to-stream client-stream response))))
 
 (defun process-request (request)
-  (sleep 1)
-  (break)
-  (log-debug "~a" request))
+  (log-debug "~a" request)
+  (create-simple-http-response 200 (list (cons "content-length" 5))
+                               (get-timestamp-string)))
+
+(defun write-http-response-to-stream (stream http-response)
+  (macrolet ((output (format-string &rest values)
+               `(progn (format stream ,format-string ,@values)
+                       (write-string +crlf+ stream))))
+    (with-slots (version status-code reason-phrase headers body) http-response
+      (output "HTTP/~a ~d ~a" version status-code reason-phrase)
+      (for-each-in headers (lambda (name value)
+                             (output "~a: ~a" name value)))
+      (output "")
+      (output body))
+    (finish-output stream)))

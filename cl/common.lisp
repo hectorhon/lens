@@ -29,3 +29,15 @@
 (defmacro lt (a b)
   "< with arguments reversed."
   `(< ,b ,a))
+
+(defgeneric get-from (object key &key throw-if-not-found))
+
+(defgeneric set-to (object key value))
+
+(define-condition key-not-found (error)
+  ((key :reader not-found-key
+        :initarg :key)))
+
+(defgeneric copy (object))
+
+(defgeneric for-each-in (object function))

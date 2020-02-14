@@ -7,4 +7,5 @@
                (:file "string")
                (:file "stream")
                (:file "jinja")
+               (:file "http/headers")
                (:file "server")))
