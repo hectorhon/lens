@@ -1,7 +1,9 @@
 (defpackage #:common
   (:use #:common-lisp)
   (:export define-constant
-           random-bytes))
+           random-bytes
+           gt
+           lt))
 
 (defpackage #:string
   (:use #:common-lisp
@@ -13,7 +15,9 @@
            trim-whitespace
            split-string-by
            empty-string-p
-           random-hex-string))
+           random-hex-string
+           string-ends-with-p
+           +crlf+))
 
 (defpackage #:test
   (:use #:common-lisp
@@ -30,7 +34,9 @@
   (:use #:common-lisp
         #:sb-bsd-sockets
         #:sb-thread
-        #:sb-ext)
+        #:sb-ext
+        #:common
+        #:string)
   (:export run
            run-background
            stop-background))

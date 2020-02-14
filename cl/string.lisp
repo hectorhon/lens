@@ -23,9 +23,8 @@ replaced with replacement."
   (defun string-uppercase (string)
     (format nil "~@:(~a~)" string)))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (define-constant +whitespace-characters+
-      (concatenate 'string '(#\Newline) '(#\Return) '(#\Tab) '(#\Space))))
+(define-constant +whitespace-characters+
+    (concatenate 'string '(#\Newline) '(#\Return) '(#\Tab) '(#\Space)))
 
 (defun trim-whitespace (string)
   "Returns a new string with whitespace trimmed from both ends of the string."
@@ -47,3 +46,10 @@ string between them."
   (with-output-to-string (stream)
     (loop :for byte :across (random-bytes num-bytes)
        :do (format stream "~2,'0X" byte))))
+
+(defun string-ends-with-p (ending string)
+  (eql (- (length string) (length ending))
+       (search ending string :from-end t)))
+
+(define-constant +crlf+
+    (concatenate 'string '(#\Return) '(#\Newline)))

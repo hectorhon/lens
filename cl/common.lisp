@@ -21,3 +21,11 @@
       (setf *os-dev-urandom* (open #P"/dev/urandom" :element-type '(unsigned-byte 8))))
     (assert (>= (read-sequence seq *os-dev-urandom*) num-bytes))
     seq))
+
+(defmacro gt (a b)
+  "> with arguments reversed."
+  `(> ,b ,a))
+
+(defmacro lt (a b)
+  "< with arguments reversed."
+  `(< ,b ,a))

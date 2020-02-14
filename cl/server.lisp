@@ -1,7 +1,7 @@
 (in-package #:server)
 
 (defmacro log-debug (control-string &rest format-arguments)
-  `(format t ,(concatenate 'string control-string "~%") ,@format-arguments))
+  `(format *error-output* ,(concatenate 'string control-string "~%") ,@format-arguments))
 
 (defvar *accept-thread*)
 
@@ -49,12 +49,71 @@
                       (close client-socket-stream)
                       (socket-close client-socket)))))))
 
+(defclass http-header ()
+  ((name :initarg :name :reader name)
+   (value :initarg :value :reader value)))
+
+(defclass http-request ()
+  ((http-method :initarg :http-method :reader http-method)
+   (uri :initarg :uri :reader uri)
+   (version :initarg :version :reader version)
+   (headers :initarg :headers :reader headers)
+   (body :initarg :body :reader body)))
+
+(defun read-until-string (delimiter stream)
+  (with-output-to-string (output-stream)
+    (loop :with counter = 0
+       :until (eql (length delimiter) counter)
+       :for next-char = (read-char stream)
+       :do (if (eql next-char (char delimiter counter))
+               (incf counter)
+               (progn (if (gt 0 counter)
+                          (write-string (subseq delimiter 0 counter) output-stream))
+                      (write-char next-char output-stream)
+                      (setf counter 0))))))
+
+(defmacro read-until-crlf (stream)
+  `(read-until-string +crlf+ ,stream))
+
 (defun process-client-stream (client-stream client-address client-port)
   (declare (ignore client-address client-port))
-  (loop :for (line missing-newline-p) = (multiple-value-list (read-line client-stream nil))
-     :do (funcall 'process-request line)
-     :until missing-newline-p))
+  (loop
+     :do (let* ((request-line
+                 (read-until-crlf client-stream))
+                (request-line-matches
+                 (nth-value 1 (cl-ppcre:scan-to-strings "(GET|POST) (.*?) HTTP/(.\\..)" request-line)))
+                (http-method
+                 (aref request-line-matches 0))
+                (uri
+                 (aref request-line-matches 1))
+                (version
+                 (aref request-line-matches 2))
+                (headers
+                 (loop :for header-line = (read-until-crlf client-stream)
+                    :unless (string:empty-string-p header-line)
+                    :collect (cl-ppcre:register-groups-bind (header-name header-value) ("(.*?) *: *(.*)" header-line)
+                               (log-debug "~a: ~a" header-name header-value)
+                               (make-instance 'http-header :name header-name :value header-value)) :into headers
+                    :else :return headers :end))
+                (content-length-header
+                 (find-if (lambda (header) (string-equal "content-length" (name header))) headers))
+                (body
+                 (unless (null content-length-header)
+                   (let* ((content-length
+                           (parse-integer (value content-length-header)))
+                          (body
+                           (make-array content-length :element-type '(unsigned-byte 8))))
+                     (read-sequence body client-stream))))
+                (request
+                 (make-instance 'http-request
+                                :http-method http-method
+                                :uri uri
+                                :version version
+                                :headers headers
+                                :body body)))
+           (process-request request))))
 
 (defun process-request (request)
-  (sleep 10)
+  (sleep 1)
+  (break)
   (log-debug "~a" request))
