@@ -13,5 +13,5 @@
                         (write-char next-char output-stream)
                         (setf counter 0)))))))
 
-(defmacro read-until-crlf (stream)
-  `(read-until-string +crlf+ ,stream))
+(defun read-until-crlf (stream)
+  (read-until-string +crlf+ stream))

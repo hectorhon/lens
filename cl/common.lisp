@@ -22,13 +22,13 @@
     (assert (>= (read-sequence seq *os-dev-urandom*) num-bytes))
     seq))
 
-(defmacro gt (a b)
+(defun gt (a b)
   "> with arguments reversed."
-  `(> ,b ,a))
+  (> b a))
 
-(defmacro lt (a b)
+(defun lt (a b)
   "< with arguments reversed."
-  `(< ,b ,a))
+  (< b a))
 
 (defgeneric get-from (object key &key throw-if-not-found))
 

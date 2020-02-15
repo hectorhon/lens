@@ -37,15 +37,13 @@
                 (progn ,@body)))
             (unless *skip-tests* (,function-name)))))
 
-(defmacro expect-equals (expected actual)
-  (let ((expected-value expected)
-        (actual-value actual))
-    `(if (equal ,expected-value ,actual-value)
-         t
-         (progn
-           (cerror "Ignore this test failure."
-                   'test-failure
-                   :description (format nil "Expected ~S but got ~S instead.~%"
-                                        ,expected-value ,actual-value)
-                   :expected ,expected-value
-                   :actual ,actual-value)))))
+(defun expect-equals (expected actual)
+  (if (equal expected actual)
+      t
+      (progn
+        (cerror "Ignore this test failure."
+                'test-failure
+                :description (format nil "Expected ~S but got ~S instead.~%"
+                                     expected actual)
+                :expected expected
+                :actual actual))))
