@@ -52,7 +52,12 @@
            (let ((client-socket-stream (socket-make-stream client-socket :element-type :default :input t :output t)))
              (unwind-protect
                   (sb-sys:with-local-interrupts
-                    (process-client-stream client-socket-stream client-address client-port))
+                    (handler-case
+                        (process-client-stream client-socket-stream client-address client-port)
+                      (end-of-file ()
+                        nil)
+                      (error (the-condition)
+                        (log-debug "An error has occurred. ~a" the-condition))))
                (progn (log-debug "Closing client socket and stream")
                       (close client-socket-stream)
                       (socket-close client-socket)))))))
