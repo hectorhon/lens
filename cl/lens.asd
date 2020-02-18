@@ -8,4 +8,5 @@
                (:file "stream")
                (:file "jinja")
                (:file "http/headers")
+               (:file "postgresql")
                (:file "server")))

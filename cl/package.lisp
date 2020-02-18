@@ -49,6 +49,14 @@
   (:export #:http-headers               ; for type checking
            #:make-http-headers))
 
+(defpackage #:lens-postgresql
+  (:use #:common-lisp)
+  (:import-from #:sb-bsd-sockets
+                #:local-socket
+                #:socket-connect
+                #:socket-make-stream
+                #:socket-close))
+
 (defpackage #:lens-server
   (:use #:common-lisp #:lens-common)
   (:import-from #:sb-thread
