@@ -33,7 +33,7 @@ only in the next top level form."
 
 (store-and-shadow read-byte :as original-read-byte)
 
-(redefine-standard-function read-byte (&optional (stream *standard-output*) (sb-impl::eof-error-p t) sb-impl::eof-value)
+(redefine-standard-function read-byte (&optional (stream *standard-input*) (sb-impl::eof-error-p t) sb-impl::eof-value)
   (original-read-byte stream sb-impl::eof-error-p sb-impl::eof-value))
 
 
