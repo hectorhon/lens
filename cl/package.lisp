@@ -1,23 +1,24 @@
-(defpackage #:lens-common
-  (:use #:common-lisp)
-  (:export #:define-constant
+(uiop:define-package #:lens-standard
+    (:mix #:common-lisp)
+  (:reexport #:common-lisp)
+  (:export #:get-from
+           #:set-to
+           #:key-not-found
+           #:for-each-in
+           #:define-constant
            #:get-symbol-home-package
            #:random-bytes
            #:gt
            #:lt
-           #:get-from
-           #:set-to
-           #:key-not-found
-           #:copy
-           #:for-each-in))
+           #:copy))
 
 (defpackage #:lens-test
-  (:use #:common-lisp #:lens-common)
+  (:use #:lens-standard)
   (:export #:define-test
            #:expect-equals))
 
 (defpackage #:lens-string
-  (:use #:common-lisp #:lens-common)
+  (:use #:lens-standard)
   (:export #:replace-all
            #:+whitespace-characters+
            #:trim-whitespace
@@ -28,14 +29,14 @@
            #:+crlf+))
 
 (defpackage #:lens-stream
-  (:use #:common-lisp #:lens-common)
+  (:use #:lens-standard)
   (:import-from #:lens-string
                 #:+crlf+)
   (:export #:read-until-string
            #:read-until-crlf))
 
 (defpackage #:lens-jinja
-  (:use #:common-lisp #:lens-common)
+  (:use #:lens-standard)
   (:import-from #:lens-test
                 #:define-test
                 #:expect-equals)
@@ -45,20 +46,12 @@
                 #:empty-string-p))
 
 (defpackage #:lens-http-headers
-  (:use #:common-lisp #:lens-common)
+  (:use #:lens-standard)
   (:export #:http-headers               ; for type checking
            #:make-http-headers))
 
-(defpackage #:lens-postgresql
-  (:use #:common-lisp)
-  (:import-from #:sb-bsd-sockets
-                #:local-socket
-                #:socket-connect
-                #:socket-make-stream
-                #:socket-close))
-
 (defpackage #:lens-server
-  (:use #:common-lisp #:lens-common)
+  (:use #:lens-standard)
   (:import-from #:sb-thread
                 #:make-thread
                 #:terminate-thread
@@ -84,3 +77,11 @@
   (:export #:start
            #:start-background
            #:stop-background))
+
+(defpackage #:lens-postgresql
+  (:use #:lens-standard)
+  (:import-from #:sb-bsd-sockets
+                #:local-socket
+                #:socket-connect
+                #:socket-make-stream
+                #:socket-close))
