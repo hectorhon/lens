@@ -19,8 +19,8 @@
 
 
 (defclass connection ()
-  ((socket :initarg :socket)
-   (stream :initarg :stream)))
+  ((socket)
+   (stream)))
 
 (defvar *connection* nil)
 
@@ -53,8 +53,10 @@
   (pg-write-byte 0))
 
 (defun pg-read-byte ()
-  (with-slots (stream) *connection*
-    (read-byte stream)))
+  (let ((byte (with-slots (stream) *connection*
+                (read-byte stream))))
+    ;; (log-debug "read byte ~a (~a)" byte (code-char byte))
+    byte))
 
 (defun pg-read-int32 ()
   (let ((integer 0))
@@ -85,7 +87,7 @@
        :do (write-char char stream))))
 
 (defun pg-read-bytes (count)
-  (loop :with bytes = (make-array count :element-type '(unsigned-byte 8))
+  (loop :with bytes = (make-sequence '(vector (unsigned-byte 8)) count)
      :for i :from 0 :below count
      :do (setf (aref bytes i) (pg-read-byte))
      :finally (return bytes)))
@@ -246,7 +248,7 @@
 
 (defclass backend-key-data (backend-message)
   ((process-id :initarg :process-id)
-   (secret-key :initarg :secret0-key)))
+   (secret-key :initarg :secret-key)))
 
 (defmethod message-type-char ((message-type (eql 'backend-key-data)))
   #\K)
@@ -257,7 +259,7 @@
 (defmethod read-message ((message-type (eql 'backend-key-data)))
   (make-instance 'backend-key-data
                  :process-id (pg-read-int32)
-                 :secret0-key (pg-read-int32)))
+                 :secret-key (pg-read-int32)))
 
 
 
@@ -359,9 +361,9 @@
   (let ((column-count (pg-read-int16)))
     (make-instance 'data-row
                    :column-count column-count
-                   :columns (let ((column-length (pg-read-signed-int32)))
-                              (loop :for n :from 1 :to column-count
-                                 :collect (make-instance 'data-row-column
+                   :columns (loop :for n :from 1 :to column-count
+                               :collect (let ((column-length (pg-read-signed-int32)))
+                                          (make-instance 'data-row-column
                                                          :length column-length
                                                          :value (unless (eq -1 column-length)
                                                                   (pg-read-bytes column-length))))))))
@@ -381,13 +383,18 @@
 (defmethod read-message ((message-type (eql 'command-complete)))
   (make-instance 'command-complete :command-tag (pg-read-string)))
 
+(defmethod print-object ((message command-complete) stream)
+  (print-unreadable-object (message stream :type t :identity nil)
+    (with-slots (command-tag) message
+      (format stream "~a" command-tag))))
+
 
 
 (defclass parse (frontend-message)
-  ((destination-prepared-statement-name :initarg :destination-prepared-statement-name :initform "")
+  ((destination-prepared-statement-name :initform "")
    (query-string :initarg :query-string)
-   (number-of-parameter-data-types-specified :initarg :number-of-parameter-data-types-specified :initform 0)
-   (parameter-data-type-object-ids :initarg :parameter-data-type-object-ids :initform nil)))
+   (number-of-parameter-data-types-specified :initform 0)
+   (parameter-data-type-object-ids :initform nil)))
 
 (defmethod message-type-char ((message-type (eql 'parse)))
   #\P)
@@ -440,13 +447,27 @@
    (number-of-result-column-format-codes :initform 0)
    (result-column-format-codes :initform nil)))
 
-(defmethod initialize-instance :after ((bind bind) &key)
-  (with-slots (parameters number-of-parameters) bind
-    (setf number-of-parameters (length parameters))))
-
 (defclass bind-parameter ()
-  ((length)
-   (value)))
+  ((length :initarg :length)
+   (value :initarg :value)))
+
+(defmethod initialize-instance :after ((bind bind) &key)
+  (with-slots (number-of-parameter-format-codes
+               parameter-format-codes
+               number-of-parameters
+               parameters)
+      bind
+    (setf number-of-parameters (length parameters))
+    (setf parameters
+          (loop :for parameter :in parameters
+             :collect (let* ((value-in-text (format nil "~a" parameter))
+                             (value-in-binary
+                              (map '(vector (unsigned-byte 8)) 'char-code
+                                   ;; (concatenate 'string value-in-text " "))))
+                                   value-in-text)))
+                        (make-instance 'bind-parameter
+                                       :length (length value-in-binary)
+                                       :value value-in-binary))))))
 
 (defmethod message-type-char ((message-type (eql 'bind)))
   #\B)
@@ -611,7 +632,7 @@
     (setf stream (socket-make-stream socket :element-type :default :input t :output t)))
   (write-message (make-instance 'startup-message :user user :database (or database user)))
   (let ((response (read-a-message)))
-    (ecase (type-of response)
+    (etypecase response
       (authentication-ok (loop :for message = (read-a-message)
                             :do (log-debug "~a" message)
                             :until (typep message 'ready-for-query)
@@ -632,29 +653,28 @@
      :until (typep message 'ready-for-query)))
 
 (defun query (query-string parameters)
-  (declare (ignore parameters))
   (write-message (make-instance 'parse :query-string query-string))
   (write-message (make-instance 'flush))
   (let ((response (read-a-message)))
-    (ecase (type-of response)
+    (etypecase response
       (parse-complete nil)
       (error-response (error "~a" response))))
-  (write-message (make-instance 'bind :parameters nil))
+  (write-message (make-instance 'bind :parameters parameters))
   (write-message (make-instance 'flush))
   (let ((response (read-a-message)))
-    (ecase (type-of response)
+    (etypecase response
       (bind-complete nil)
       (error-response (error "~a" response))))
   (write-message (make-instance 'execute))
   (write-message (make-instance 'flush))
   (loop :for response = (read-a-message)
      :do (log-debug "~a" response)
-     :until (case (type-of response)
+     :until (typecase response
               (command-complete t)
               (empty-query-response t)
               (error-response (error "~a" response))
               (portal-suspended t)))
   (write-message (make-instance 'sync))
   (let ((response (read-a-message)))
-    (ecase (type-of response)
+    (etypecase response
       (ready-for-query nil))))
