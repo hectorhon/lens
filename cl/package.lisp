@@ -78,10 +78,11 @@
            #:start-background
            #:stop-background))
 
-(defpackage #:lens-postgresql
-  (:use #:lens-standard)
-  (:import-from #:sb-bsd-sockets
-                #:local-socket
-                #:socket-connect
-                #:socket-make-stream
-                #:socket-close))
+(defpackage :lens-postgresql
+  (:use :lens-standard)
+  (:import-from :sb-bsd-sockets
+                :local-socket
+                :socket-connect
+                :socket-make-stream
+                :socket-open-p
+                :socket-close))

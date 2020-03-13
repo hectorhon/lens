@@ -1,12 +1,3 @@
-(defpackage :lens-postgresql
-  (:use :cl)
-  (:import-from :sb-bsd-sockets
-                :local-socket
-                :socket-connect
-                :socket-make-stream
-                :socket-open-p
-                :socket-close))
-
 (in-package :lens-postgresql)
 
 (defun log-debug (control-string &rest args)
