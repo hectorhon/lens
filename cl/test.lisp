@@ -28,13 +28,15 @@
         (doc-string (concatenate 'string "TEST: " test-name)))
     `(progn (defun ,function-name ()
               ,doc-string
+              (format *error-output* "Running test ~a...~%" ,test-name)
               (handler-bind
                   ((test-failure (lambda (condition)
                                    (setf (name condition) ,test-name)
                                    (format *error-output* "~%~a~%~%" condition)
                                    ;; (invoke-restart 'continue)
                                    )))
-                (progn ,@body)))
+                (progn ,@body
+                       (format *error-output* "Done.~%"))))
             (unless *skip-tests* (,function-name)))))
 
 (defun expect-equals (expected actual)

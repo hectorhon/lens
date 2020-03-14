@@ -19,8 +19,22 @@
 (defclass literal-token (token)
   ())
 
-(defclass statement-token (token)
-  ())
+(defclass statement-token (token) ())
+
+(defclass for-statement-token (statement-token)
+  ((loop-variable :initarg :loop-variable)
+   (variable-to-loop-over :initarg :variable-to-loop-over)))
+
+(defclass endfor-statement-token (statement-token) ())
+
+(defun make-statement-token (contents)
+  (let ((words (remove-if 'empty-string-p (split #\Space contents))))
+    (string-case (first words)
+      ("for" (progn (assert (string= "in" (third words)))
+                    (make-instance 'for-statement-token
+                                   :loop-variable (second words)
+                                   :variable-to-loop-over (fourth words))))
+      ("endfor" (make-instance 'endfor-statement-token)))))
 
 (defclass expression-token (token)
   ())
@@ -43,7 +57,7 @@
                                  (tag-contents
                                   (trim-whitespace (subseq tag 2 (- (length tag) 2)))))
                             (ecase (elt tag 1)
-                              (#\% (make-instance 'statement-token :contents tag-contents))
+                              (#\% (make-statement-token tag-contents))
                               (#\{ (make-instance 'expression-token :contents tag-contents))
                               (#\# (make-instance 'comment-token :contents tag-contents))))))
                  (prog1 (list literal tag)
@@ -62,49 +76,49 @@
   ((accessor :initarg :accessor :reader accessor)
    (filters :initarg :filters :reader filters)))
 
-(define-condition parse-failure (error) ())
+(defmethod parse ((result-type (eql 'literal)))
+  (let ((token (car *tokens*)))
+    (typecase token
+      (literal-token
+       (make-instance 'parse-success
+                      :parsed-elements (make-instance 'literal :str (contents token))
+                      :remaining-tokens (cdr *tokens*)))
+      (t (make-instance 'parse-failure)))))
 
-(defun parse-literal (tokens)
-  (let ((token (car tokens)))
-    (if (eq 'literal-token (type-of token))
-        (values (make-instance 'literal :str (contents token))
-                (cdr tokens))
-        (error 'parse-failure))))
+(defmethod parse ((result-type (eql 'expression)))
+  (let ((token (car *tokens*)))
+    (typecase token
+      (expression-token
+       (make-instance 'parse-success
+                      :parsed-elements (with-slots (contents) token
+                                         (destructuring-bind (accessor &rest filters)
+                                             (split #\| contents)
+                                           (make-instance 'expression
+                                                          :accessor (split #\. (trim-whitespace accessor))
+                                                          :filters (mapcar (lambda (raw-filter-string)
+                                                                             (make-instance
+                                                                              (intern (string-upcase
+                                                                                       (concatenate 'string
+                                                                                                    (trim-whitespace raw-filter-string)
+                                                                                                    "-filter")))))
+                                                                           filters))))
+                      :remaining-tokens (cdr *tokens*)))
+      (t (make-instance 'parse-failure)))))
 
-(defun parse-expression (tokens)
-  (let ((token (car tokens)))
-    (if (eq 'expression-token (type-of token))
-        (values (with-slots (contents) token
-                  (destructuring-bind (accessor &rest filters)
-                      (split #\| contents)
-                    (make-instance 'expression
-                                   :accessor (split #\. (trim-whitespace accessor))
-                                   :filters (mapcar (lambda (raw-filter-string)
-                                                      (make-instance
-                                                       (intern (string-upcase
-                                                                (concatenate 'string
-                                                                             (trim-whitespace raw-filter-string)
-                                                                             "-filter")))))
-                                                    filters))))
-                (cdr tokens))
-        (error 'parse-failure))))
+(defmethod parse ((result-type (eql 'element)))
+  (parse-one-of 'literal 'expression))
 
-(defun try-parsers (tokens &rest parsers)
-  (loop :for parser :in parsers
-     :do (handler-case (return (funcall parser tokens))
-           (parse-failure ()
-             ;; log error etc., then continue the loop
-             ))))
-
-(defun parse (tokens)
-  (loop :with remaining-tokens = tokens
-     :until (endp remaining-tokens)
-     :collect (multiple-value-bind (parsed-elements remaining-tokens-after-parsing-step)
-                  (try-parsers remaining-tokens
-                               'parse-literal
-                               'parse-expression)
-                (prog1 parsed-elements
-                  (setf remaining-tokens remaining-tokens-after-parsing-step)))))
+(defun parse-tokens (tokens)
+  (let ((*tokens* tokens))
+    (let ((parse-result (parse-many 'element)))
+      (etypecase parse-result
+        (parse-success
+         (with-slots (parsed-elements remaining-tokens) parse-result
+           (assert (null remaining-tokens))
+           parsed-elements))
+        (parse-failure
+         (with-slots (reason) parse-result
+           (error "Failed to parse: ~a" reason)))))))
 
 
 
@@ -157,7 +171,7 @@ others lowercase."
 
 (defun render (template-string context)
   (let* ((tokens (tokenize template-string))
-         (elements (parse tokens)))
+         (elements (parse-tokens tokens)))
     (with-output-to-string (stream)
       (loop :for element :in elements
          :do (render-element element stream context)))))

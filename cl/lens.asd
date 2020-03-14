@@ -6,6 +6,7 @@
                (:file "test")
                (:file "string")
                (:file "stream")
+               (:file "parse")
                (:file "jinja")
                (:file "http/headers")
                (:file "server")

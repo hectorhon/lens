@@ -36,6 +36,18 @@
   (:export #:read-until-string
            #:read-until-crlf))
 
+(defpackage :lens-parse
+  (:use :lens-standard)
+  (:export :parse-success
+           :parse-failure
+           :parse
+           :parse-one-of
+           :parse-many
+           :*tokens*
+           :parsed-elements
+           :remaining-tokens
+           :reason))
+
 (defpackage #:lens-jinja
   (:use #:lens-standard)
   (:import-from #:lens-test
@@ -44,7 +56,18 @@
   (:import-from #:lens-string
                 #:trim-whitespace
                 #:split
-                #:empty-string-p))
+                #:empty-string-p
+                #:string-case)
+  (:import-from :lens-parse
+                :parse-success
+                :parse-failure
+                :parse
+                :parse-one-of
+                :parse-many
+                :*tokens*
+                :parsed-elements
+                :remaining-tokens
+                :reason))
 
 (defpackage #:lens-http-headers
   (:use #:lens-standard)
