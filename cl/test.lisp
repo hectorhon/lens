@@ -19,7 +19,7 @@
             (description condition))
     (call-next-method)))
 
-(defmacro define-test (test-name &rest body)
+(defmacro define-test (test-name &body body)
   (let ((function-name
          (intern (nstring-upcase
                   (funcall 'lens-string:replace-all

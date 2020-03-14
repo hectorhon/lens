@@ -175,44 +175,44 @@ others lowercase."
 
 
 (define-test "Render template without variables and expressions"
-    (expect-equals
-     "abcdef ghijkl"
-     (render "abcdef ghijkl" (make-instance 'context))))
+  (expect-equals
+   "abcdef ghijkl"
+   (render "abcdef ghijkl" (make-instance 'context))))
 
 (define-test "Render template with simple variable having number. Syntax: {{ var }}"
-    (let ((context (make-instance 'context)))
-      (set-context-variable context "var" 123)
-      (expect-equals
-       "abcdef 123"
-       (render "abcdef {{ var }}" context))))
+  (let ((context (make-instance 'context)))
+    (set-context-variable context "var" 123)
+    (expect-equals
+     "abcdef 123"
+     (render "abcdef {{ var }}" context))))
 
 (define-test "Render template with simple variable having string. Syntax: {{ var }}"
-    (let ((context (make-instance 'context)))
-      (set-context-variable context "var" "a string")
-      (expect-equals
-       "abcdef a string"
-       (render "abcdef {{ var }}" context))))
+  (let ((context (make-instance 'context)))
+    (set-context-variable context "var" "a string")
+    (expect-equals
+     "abcdef a string"
+     (render "abcdef {{ var }}" context))))
 
 (define-test "Render template with variable having CLOS object. Syntax: {{ object.slot-accessor }}"
-    (let ((context (make-instance 'context)))
-      (set-context-variable context "object"
-                            (make-instance 'token :contents "a slot value"))
-      (expect-equals
-       "abcdef a slot value xyz"
-       (render "abcdef {{ object.contents }} xyz" context))))
+  (let ((context (make-instance 'context)))
+    (set-context-variable context "object"
+                          (make-instance 'token :contents "a slot value"))
+    (expect-equals
+     "abcdef a slot value xyz"
+     (render "abcdef {{ object.contents }} xyz" context))))
 
 (define-test "Render template with a filter. Syntax: {{ object.slot-accessor | upper }}"
-    (let ((context (make-instance 'context)))
-      (set-context-variable context "object"
-                            (make-instance 'token :contents "a slot value"))
-      (expect-equals
-       "abcdef A SLOT VALUE xyz"
-       (render "abcdef {{ object.contents |upper }} xyz" context))))
+  (let ((context (make-instance 'context)))
+    (set-context-variable context "object"
+                          (make-instance 'token :contents "a slot value"))
+    (expect-equals
+     "abcdef A SLOT VALUE xyz"
+     (render "abcdef {{ object.contents |upper }} xyz" context))))
 
 (define-test "Render template with multiple filters. Syntax: {{ object.slot-accessor | upper | capitalize }}"
-    (let ((context (make-instance 'context)))
-      (set-context-variable context "object"
-                            (make-instance 'token :contents "a slot value"))
-      (expect-equals
-       "abcdef A slot value xyz"
-       (render "abcdef {{ object.contents| upper| capitalize}} xyz" context))))
+  (let ((context (make-instance 'context)))
+    (set-context-variable context "object"
+                          (make-instance 'token :contents "a slot value"))
+    (expect-equals
+     "abcdef A slot value xyz"
+     (render "abcdef {{ object.contents| upper| capitalize}} xyz" context))))
