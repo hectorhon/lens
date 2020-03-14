@@ -26,7 +26,8 @@
            #:empty-string-p
            #:random-hex-string
            #:string-ends-with-p
-           #:+crlf+))
+           #:+crlf+
+           #:string-case))
 
 (defpackage #:lens-stream
   (:use #:lens-standard)

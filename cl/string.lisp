@@ -46,3 +46,21 @@ string between them."
 
 (define-constant +crlf+
     (concatenate 'string '(#\Return) '(#\Newline)))
+
+(defmacro string-case (string &body cases)
+  (let ((evaluated-string-symbol (gensym))
+        (string-predicates (mapcar (lambda (case)
+                                     (assert (typep (car case) 'string))
+                                     (car case))
+                                   cases)))
+    (labels ((expand (cases)
+               (if (null (car cases))
+                   `(error "Expected one of (~{~s~^, ~}), but got ~s instead"
+                           (quote ,string-predicates)
+                           ,evaluated-string-symbol)
+                   (destructuring-bind (string-predicate &rest body-to-execute) (car cases)
+                     `(if (string= ,string-predicate ,evaluated-string-symbol)
+                          ,@body-to-execute
+                          ,(expand (cdr cases)))))))
+      `(let ((,evaluated-string-symbol ,string))
+         ,(expand cases)))))
