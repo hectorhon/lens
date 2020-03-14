@@ -14,7 +14,7 @@
 
 
 (defclass token ()
-  ((contents :initarg :contents :reader contents)))
+  ((contents :initarg :contents)))
 
 (defclass literal-token (token)
   ())
@@ -72,38 +72,34 @@
 (defclass literal (element)
   ((str :initarg :str :reader str)))
 
+(defmethod parse ((result-type (eql 'literal)))
+  (do-notation parse-result
+    (contents (match (lambda (token)
+                       (typecase token
+                         (literal-token (slot-value token 'contents))
+                         (t nil)))))
+    (mreturn 'parse-result (make-instance 'literal :str contents))))
+
 (defclass expression (element)
   ((accessor :initarg :accessor :reader accessor)
    (filters :initarg :filters :reader filters)))
 
-(defmethod parse ((result-type (eql 'literal)))
-  (let ((token (car *tokens*)))
-    (typecase token
-      (literal-token
-       (make-instance 'parse-success
-                      :parsed-elements (make-instance 'literal :str (contents token))
-                      :remaining-tokens (cdr *tokens*)))
-      (t (make-instance 'parse-failure)))))
-
 (defmethod parse ((result-type (eql 'expression)))
-  (let ((token (car *tokens*)))
-    (typecase token
-      (expression-token
-       (make-instance 'parse-success
-                      :parsed-elements (with-slots (contents) token
-                                         (destructuring-bind (accessor &rest filters)
-                                             (split #\| contents)
-                                           (make-instance 'expression
-                                                          :accessor (split #\. (trim-whitespace accessor))
-                                                          :filters (mapcar (lambda (raw-filter-string)
-                                                                             (make-instance
-                                                                              (intern (string-upcase
-                                                                                       (concatenate 'string
-                                                                                                    (trim-whitespace raw-filter-string)
-                                                                                                    "-filter")))))
-                                                                           filters))))
-                      :remaining-tokens (cdr *tokens*)))
-      (t (make-instance 'parse-failure)))))
+  (do-notation parse-result
+    (contents (match (lambda (token)
+                       (typecase token
+                         (expression-token (slot-value token 'contents))))))
+    (destructuring-bind (accessor &rest filters) (split #\| contents)
+      (mreturn 'parse-result
+               (make-instance 'expression
+                              :accessor (split #\. (trim-whitespace accessor))
+                              :filters (mapcar (lambda (raw-filter-string)
+                                                 (make-instance
+                                                  (intern (string-upcase
+                                                           (concatenate 'string
+                                                                        (trim-whitespace raw-filter-string)
+                                                                        "-filter")))))
+                                               filters))))))
 
 (defmethod parse ((result-type (eql 'element)))
   (parse-one-of 'literal 'expression))
@@ -113,9 +109,9 @@
     (let ((parse-result (parse-many 'element)))
       (etypecase parse-result
         (parse-success
-         (with-slots (parsed-elements remaining-tokens) parse-result
-           (assert (null remaining-tokens))
-           parsed-elements))
+         (with-slots (result remaining) parse-result
+           (assert (null remaining))
+           result))
         (parse-failure
          (with-slots (reason) parse-result
            (error "Failed to parse: ~a" reason)))))))
@@ -158,7 +154,7 @@ others lowercase."
            (value
             (loop :with value = target-context-variable
                :for accessor-part :in (cdr accessor)
-               :do (setf value (funcall (intern (string-upcase accessor-part)) value))
+               :do (setf value (slot-value value (intern (string-upcase accessor-part))))
                :finally (return value)))
            (value-after-filter
             (loop :with value-after-filter = value

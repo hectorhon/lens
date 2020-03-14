@@ -5,6 +5,9 @@
            #:set-to
            #:key-not-found
            #:for-each-in
+           :bind
+           :mreturn
+           :do-notation
            #:define-constant
            #:get-symbol-home-package
            #:random-bytes
@@ -38,15 +41,14 @@
 
 (defpackage :lens-parse
   (:use :lens-standard)
-  (:export :parse-success
-           :parse-failure
+  (:export :*tokens*
+           :parse-result
+           :parse-success :result :remaining
+           :parse-failure :reason
            :parse
-           :parse-one-of
+           :match
            :parse-many
-           :*tokens*
-           :parsed-elements
-           :remaining-tokens
-           :reason))
+           :parse-one-of))
 
 (defpackage #:lens-jinja
   (:use #:lens-standard)
@@ -59,15 +61,14 @@
                 #:empty-string-p
                 #:string-case)
   (:import-from :lens-parse
-                :parse-success
-                :parse-failure
-                :parse
-                :parse-one-of
-                :parse-many
                 :*tokens*
-                :parsed-elements
-                :remaining-tokens
-                :reason))
+                :parse-result
+                :parse-success :result :remaining
+                :parse-failure :reason
+                :parse
+                :match
+                :parse-many
+                :parse-one-of))
 
 (defpackage #:lens-http-headers
   (:use #:lens-standard)

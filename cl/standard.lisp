@@ -52,6 +52,30 @@ only in the next top level form."
 
 
 
+;;; Functional
+
+(defgeneric bind (type ma a-mb))
+
+(defgeneric mreturn (type a))
+
+(defmacro do-notation (type &body body)
+  (let ((statements (butlast body))
+        (return-statement (car (last body))))
+    (if (null statements)
+        return-statement
+        (destructuring-bind (variable action) (car statements)
+          `(bind (quote ,type) ,action
+                 (lambda (,variable)
+                   ,(macroexpand `(do-notation ,type ,@(cdr body)))))))))
+
+;;; do-notation looks something like this:
+;; (do-notation parse-result
+;;   (n (parse 'integer))
+;;   (s (parse 'string))
+;;   (mreturn 'parse-result (format nil "~a ~a" n s)))
+
+
+
 ;;; Unsorted
 
 (defmacro define-constant (name value &optional doc)
