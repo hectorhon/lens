@@ -5,11 +5,21 @@
               :accessor variables
               :type hash-table)))
 
-(defmethod set-context-variable ((context context) key value)
+(defmethod set-to ((context context) key value)
   (setf (gethash key (variables context)) value))
 
-(defmethod get-context-variable ((context context) key)
-  (gethash key (variables context)))
+(defmethod get-from ((context context) key &key throw-if-not-found)
+  (multiple-value-bind (value present-p)
+      (gethash key (variables context))
+    (if (and throw-if-not-found (not present-p))
+        (error 'key-not-found :key key)
+        value)))
+
+(defmethod copy ((context context))
+  (let ((context-copy (make-instance 'context)))
+    (setf (slot-value context-copy 'variables)
+          (copy (slot-value context 'variables)))
+    context-copy))
 
 
 
@@ -72,6 +82,17 @@
 (defclass literal (element)
   ((str :initarg :str :reader str)))
 
+(defclass expression (element)
+  ((accessor :initarg :accessor :reader accessor)
+   (filters :initarg :filters :reader filters)))
+
+(defclass statement (element) ())
+
+(defclass for-statement (statement)
+  ((loop-variable :initarg :loop-variable)
+   (variable-to-loop-over :initarg :variable-to-loop-over)
+   (loop-body :initarg :loop-body)))
+
 (defmethod parse ((result-type (eql 'literal)))
   (do-notation parse-result
     (contents (match (lambda (token)
@@ -79,10 +100,6 @@
                          (literal-token (slot-value token 'contents))
                          (t nil)))))
     (mreturn 'parse-result (make-instance 'literal :str contents))))
-
-(defclass expression (element)
-  ((accessor :initarg :accessor :reader accessor)
-   (filters :initarg :filters :reader filters)))
 
 (defmethod parse ((result-type (eql 'expression)))
   (do-notation parse-result
@@ -101,8 +118,29 @@
                                                                         "-filter")))))
                                                filters))))))
 
+(defmethod parse ((result-type (eql 'for-statement)))
+  (do-notation parse-result
+    (start-token (match (lambda (token)
+                          (typecase token
+                            (for-statement-token token)
+                            (t nil)))))
+    (body (parse-many 'element))
+    (_ (match (lambda (token)
+                (typecase token
+                  (endfor-statement-token token)
+                  (t nil)))))
+    (with-slots (loop-variable variable-to-loop-over) start-token
+      (mreturn 'parse-result
+               (make-instance 'for-statement
+                              :loop-variable loop-variable
+                              :variable-to-loop-over variable-to-loop-over
+                              :loop-body body)))))
+
+(defmethod parse ((result-type (eql 'statement)))
+  (parse 'for-statement))
+
 (defmethod parse ((result-type (eql 'element)))
-  (parse-one-of 'literal 'expression))
+  (parse-one-of 'literal 'expression 'statement))
 
 (defun parse-tokens (tokens)
   (let ((*tokens* tokens))
@@ -142,6 +180,10 @@ others lowercase."
 (defgeneric render-element (element stream context)
   (:documentation "Render the element in the given context."))
 
+(defun render-elements (elements stream context)
+  (loop :for element :in elements
+     :do (render-element element stream context)))
+
 (defmethod render-element ((literal literal) stream context)
   (write-string (str literal) stream))
 
@@ -150,7 +192,7 @@ others lowercase."
     (let* ((key
             (car accessor))
            (target-context-variable
-            (get-context-variable context key))
+            (get-from context key))
            (value
             (loop :with value = target-context-variable
                :for accessor-part :in (cdr accessor)
@@ -165,12 +207,20 @@ others lowercase."
           (format stream "~a" value-after-filter)
           (write-string "<undefined>" stream)))))
 
+(defmethod render-element ((for-statement for-statement) stream context)
+  (with-slots (loop-variable variable-to-loop-over loop-body) for-statement
+    (let ((things-to-loop-over (get-from context variable-to-loop-over)))
+      (loop :for thing :in things-to-loop-over
+         :do (let ((context (copy context)))
+               (set-to context loop-variable thing)
+               (render-elements loop-body stream context))))))
+
+
 (defun render (template-string context)
   (let* ((tokens (tokenize template-string))
          (elements (parse-tokens tokens)))
     (with-output-to-string (stream)
-      (loop :for element :in elements
-         :do (render-element element stream context)))))
+      (render-elements elements stream context))))
 
 
 
@@ -181,21 +231,21 @@ others lowercase."
 
 (define-test "Render template with simple variable having number. Syntax: {{ var }}"
   (let ((context (make-instance 'context)))
-    (set-context-variable context "var" 123)
+    (set-to context "var" 123)
     (expect-equals
      "abcdef 123"
      (render "abcdef {{ var }}" context))))
 
 (define-test "Render template with simple variable having string. Syntax: {{ var }}"
   (let ((context (make-instance 'context)))
-    (set-context-variable context "var" "a string")
+    (set-to context "var" "a string")
     (expect-equals
      "abcdef a string"
      (render "abcdef {{ var }}" context))))
 
 (define-test "Render template with variable having CLOS object. Syntax: {{ object.slot-accessor }}"
   (let ((context (make-instance 'context)))
-    (set-context-variable context "object"
+    (set-to context "object"
                           (make-instance 'token :contents "a slot value"))
     (expect-equals
      "abcdef a slot value xyz"
@@ -203,7 +253,7 @@ others lowercase."
 
 (define-test "Render template with a filter. Syntax: {{ object.slot-accessor | upper }}"
   (let ((context (make-instance 'context)))
-    (set-context-variable context "object"
+    (set-to context "object"
                           (make-instance 'token :contents "a slot value"))
     (expect-equals
      "abcdef A SLOT VALUE xyz"
@@ -211,8 +261,15 @@ others lowercase."
 
 (define-test "Render template with multiple filters. Syntax: {{ object.slot-accessor | upper | capitalize }}"
   (let ((context (make-instance 'context)))
-    (set-context-variable context "object"
+    (set-to context "object"
                           (make-instance 'token :contents "a slot value"))
     (expect-equals
      "abcdef A slot value xyz"
      (render "abcdef {{ object.contents| upper| capitalize}} xyz" context))))
+
+(define-test "Render template with for loop. Syntax: {% for n in numbers %}number-{{ n }},{% endfor %}"
+  (let ((context (make-instance 'context)))
+    (set-to context "numbers" (list 1 2 3 4))
+    (expect-equals
+     "number-1,number-2,number-3,number-4,"
+     (render "{% for n in numbers %}number-{{ n }},{% endfor %}" context))))

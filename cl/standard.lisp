@@ -66,6 +66,7 @@ only in the next top level form."
         (destructuring-bind (variable action) (car statements)
           `(bind (quote ,type) ,action
                  (lambda (,variable)
+                   ,(if (string= "_" (symbol-name variable)) `(declare (ignorable ,variable)))
                    ,(macroexpand `(do-notation ,type ,@(cdr body)))))))))
 
 ;;; do-notation looks something like this:
@@ -109,3 +110,13 @@ only in the next top level form."
   (< b a))
 
 (defgeneric copy (object))
+
+(defmethod copy ((hash-table hash-table))
+  (let ((copy (make-hash-table :test (hash-table-test hash-table)
+                               :size (hash-table-size hash-table)
+                               :rehash-size (hash-table-rehash-size hash-table)
+                               :rehash-threshold (hash-table-rehash-threshold hash-table))))
+    (maphash (lambda (k v)
+               (setf (gethash k copy) v))
+             hash-table)
+    copy))
