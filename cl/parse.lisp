@@ -17,7 +17,8 @@
 (defun parse-failure (&optional reason)
   (make-instance 'parse-failure :reason reason))
 
-(defgeneric parse (result-type))
+(defgeneric parse (result-type)
+  (:documentation "Returns a PARSE-RESULT."))
 
 (defmethod mreturn ((result-type (eql 'parse-result)) result)
   (parse-success result *tokens*))
@@ -36,10 +37,10 @@
 ;;   (s (parse 'string))
 ;;   (mreturn 'parse-result (format nil "~a ~a" n s)))
 
-(defun match (token-test)
-  (let ((token-test-result (funcall token-test (car *tokens*))))
-    (if token-test-result
-        (parse-success token-test-result (cdr *tokens*))
+(defun match (token-p)
+  (let ((token-p-result (funcall token-p (car *tokens*))))
+    (if token-p-result
+        (parse-success token-p-result (cdr *tokens*))
         (parse-failure))))
 
 (defun parse-many (result-type)
@@ -58,6 +59,13 @@
               (parse-success (list result) remaining))))))
       (parse-failure
        (parse-success nil *tokens*)))))
+
+(defun parse-optional (result-type)
+  "Parse zero or one RESULT-TYPE results. The result is NIL if not present. This parse never fails."
+  (let ((parse-result (parse result-type)))
+    (etypecase parse-result
+      (parse-success parse-result)
+      (parse-failure (parse-success nil *tokens*)))))
 
 (defun parse-one-of (&rest result-types)
   (if (null result-types)

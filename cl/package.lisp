@@ -48,7 +48,8 @@
            :parse
            :match
            :parse-many
-           :parse-one-of))
+           :parse-one-of
+           :parse-optional))
 
 (defpackage #:lens-jinja
   (:use #:lens-standard)
@@ -68,7 +69,8 @@
                 :parse
                 :match
                 :parse-many
-                :parse-one-of))
+                :parse-one-of
+                :parse-optional))
 
 (defpackage #:lens-http-headers
   (:use #:lens-standard)
