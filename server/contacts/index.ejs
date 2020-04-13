@@ -1,0 +1,25 @@
+<%- include('/header') -%>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% contacts.forEach(contact => { %>
+      <tr>
+        <td><%= contact.name %></td>
+        <td><a href="/contacts/edit?id=<%= contact.id %>">Edit</a></td>
+        <td><a href="/contacts/delete?id=<%= contact.id %>">Delete</a></td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+<p>
+  <a href="/contacts/add">Add</a>
+</p>
+
+<%- include ('/footer') -%>
